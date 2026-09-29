@@ -1,0 +1,26 @@
+:root {
+  /* Application Dashboard (Light / Crisp / Enterprise) */
+  --app-bg: #f8f9fa;
+  --surface: #ffffff;
+  --surface-hover: #f1f3f5;
+  --surface-muted: #f4f5f7;
+  --border: #e2e4e8;
+  --border-subtle: #ebedf0;
+  
+  --text-primary: #191c21;
+  --text-secondary: #58606e;
+  --text-muted: #848e9f;
+  
+  --accent: #0e72ed;
+  --accent-hover: #0b5cdb;
+  --accent-subtle: #ebf3ff;
+  
+  --danger: #e02828;
+  --danger-hover: #c41f1f;
+  
+  /* Meeting Room (Deep Neutral Dark / Focused) */
+  --meeting-bg: #111215;
+  --meeting-surface: #1b1d22;
+  --meeting-toolbar: #16171b;
+  --meeting-border: #262930;
+}

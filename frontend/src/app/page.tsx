@@ -1,0 +1,149 @@
+"use client";
+
+import React, { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+import { Navbar } from "@/components/dashboard/Navbar";
+import { ActionCluster } from "@/components/dashboard/ActionCluster";
+import { UpcomingList } from "@/components/dashboard/UpcomingList";
+import { RecentList } from "@/components/dashboard/RecentList";
+import { ScheduleModal } from "@/components/dashboard/ScheduleModal";
+import { Button } from "@/components/ui/Button";
+import { api } from "@/lib/api";
+import { Meeting } from "@/types";
+import { Video, Calendar } from "lucide-react";
+import { formatScheduleDisplay } from "@/lib/utils";
+
+export default function DashboardPage() {
+  const [upcomingMeetings, setUpcomingMeetings] = useState<Meeting[]>([]);
+  const [recentMeetings, setRecentMeetings] = useState<Meeting[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isScheduleOpen, setIsScheduleOpen] = useState<boolean>(false);
+  const [backendError, setBackendError] = useState<string | null>(null);
+
+  const fetchMeetings = useCallback(async () => {
+    setIsLoading(true);
+    setBackendError(null);
+    try {
+      const [upcoming, recent] = await Promise.all([
+        api.getUpcomingMeetings(10),
+        api.getRecentMeetings(10),
+      ]);
+      setUpcomingMeetings(upcoming);
+      setRecentMeetings(recent);
+    } catch (err: any) {
+      setBackendError(
+        "Could not connect to the OrbitMeet backend service. Make sure FastAPI server is running."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMeetings();
+  }, [fetchMeetings]);
+
+  const nextMeeting = upcomingMeetings[0];
+
+  return (
+    <div className="min-h-screen flex flex-col bg-app">
+      <Navbar />
+
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
+        {backendError && (
+          <div className="rounded-lg border border-danger/30 bg-danger/10 p-4 text-sm text-danger flex items-center justify-between">
+            <span>{backendError}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchMeetings}
+              className="text-xs"
+            >
+              Retry Connection
+            </Button>
+          </div>
+        )}
+
+        {/* Action Cluster Section */}
+        <section aria-label="Meeting actions">
+          <ActionCluster onScheduleClick={() => setIsScheduleOpen(true)} />
+        </section>
+
+        {/* Next Meeting Banner Strip (if upcoming exists) */}
+        {nextMeeting && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-border bg-gradient-to-r from-surface to-surface-muted p-4 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#0e72ed]/10 text-[#0e72ed]">
+                <Calendar className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+                  Up Next
+                </div>
+                <div className="text-sm font-semibold text-text-primary">
+                  {nextMeeting.title}
+                </div>
+                <div className="text-xs text-text-secondary">
+                  {formatScheduleDisplay(nextMeeting.scheduled_at)} • {nextMeeting.duration_minutes || 45} mins
+                </div>
+              </div>
+            </div>
+            <Link href={`/meeting/${nextMeeting.meeting_code}`}>
+              <Button size="sm" className="gap-1.5 self-start sm:self-center">
+                <Video className="h-4 w-4" />
+                <span>Join Now</span>
+              </Button>
+            </Link>
+          </div>
+        )}
+
+        {/* Two-Column Meeting Lists (Upcoming & Recent) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Upcoming Section */}
+          <section className="space-y-3">
+            <div className="flex items-center justify-between border-b border-border pb-2">
+              <h3 className="text-base font-semibold text-text-primary">
+                Upcoming Meetings
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsScheduleOpen(true)}
+                className="text-xs text-[#0e72ed] hover:text-[#0b5cdb] h-7 px-2"
+              >
+                + Schedule
+              </Button>
+            </div>
+            <UpcomingList
+              meetings={upcomingMeetings}
+              isLoading={isLoading}
+              onRefresh={fetchMeetings}
+            />
+          </section>
+
+          {/* Recent Section */}
+          <section className="space-y-3">
+            <div className="flex items-center justify-between border-b border-border pb-2">
+              <h3 className="text-base font-semibold text-text-primary">
+                Recent Meetings
+              </h3>
+              <span className="text-xs text-text-muted">
+                {recentMeetings.length} sessions
+              </span>
+            </div>
+            <RecentList
+              meetings={recentMeetings}
+              isLoading={isLoading}
+            />
+          </section>
+        </div>
+      </main>
+
+      <ScheduleModal
+        isOpen={isScheduleOpen}
+        onClose={() => setIsScheduleOpen(false)}
+        onSuccess={fetchMeetings}
+      />
+    </div>
+  );
+}
