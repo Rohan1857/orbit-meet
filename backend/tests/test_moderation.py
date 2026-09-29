@@ -97,3 +97,89 @@ def test_participant_forged_host_token_rejected(client, auth_headers):
             headers={"x-host-token": token}
         )
         assert end_res.status_code == 403
+
+
+def test_host_mute_single_participant_success(client, auth_headers, monkeypatch):
+    create_res = client.post("/api/meetings/instant", headers=auth_headers, json={"title": "Mute Test"})
+    meeting_code = create_res.json()["meeting_code"]
+
+    # Participant joins
+    join_res = client.post(
+        f"/api/meetings/{meeting_code}/join",
+        json={"display_name": "Alice", "role": "participant"}
+    )
+    participant_identity = join_res.json()["participant_identity"]
+
+    # Mock LiveKitService.mute_participant
+    async def mock_mute(room_name, identity, muted=True):
+        return True
+
+    from app.services.livekit_service import LiveKitService
+    monkeypatch.setattr(LiveKitService, "mute_participant", mock_mute)
+
+    # Host mutes Alice
+    mute_res = client.post(
+        f"/api/meetings/{meeting_code}/participants/{participant_identity}/mute",
+        headers=auth_headers
+    )
+    assert mute_res.status_code == 200
+    data = mute_res.json()
+    assert data["status"] == "muted"
+    assert data["identity"] == participant_identity
+    assert data["success"] is True
+
+
+def test_host_mute_all_participants_success(client, auth_headers, monkeypatch):
+    create_res = client.post("/api/meetings/instant", headers=auth_headers, json={"title": "Mute All Test"})
+    meeting_code = create_res.json()["meeting_code"]
+
+    # Mock LiveKitService.mute_all_participants
+    async def mock_mute_all(room_name, host_identity=None):
+        return 2
+
+    from app.services.livekit_service import LiveKitService
+    monkeypatch.setattr(LiveKitService, "mute_all_participants", mock_mute_all)
+
+    # Host executes Mute All
+    mute_all_res = client.post(
+        f"/api/meetings/{meeting_code}/mute-all",
+        headers=auth_headers
+    )
+    assert mute_all_res.status_code == 200
+    data = mute_all_res.json()
+    assert data["status"] == "muted_all"
+    assert data["meeting_code"] == meeting_code
+    assert data["muted_count"] == 2
+
+
+def test_non_owner_mute_rejected_with_403(client, auth_headers):
+    # Owner creates meeting
+    create_res = client.post("/api/meetings/instant", headers=auth_headers, json={"title": "Private Mute Room"})
+    meeting_code = create_res.json()["meeting_code"]
+
+    # Attacker registers
+    attacker = client.post("/api/auth/register", json={
+        "email": "attacker_mute@example.com",
+        "password": "Password123!",
+        "display_name": "Attacker"
+    }).json()
+    attacker_token = attacker["token"]
+
+    # Non-owner attempts single mute
+    res1 = client.post(
+        f"/api/meetings/{meeting_code}/participants/user_someone_1234/mute",
+        headers={"Authorization": f"Bearer {attacker_token}"}
+    )
+    assert res1.status_code == 403
+
+    # Non-owner attempts mute all
+    res2 = client.post(
+        f"/api/meetings/{meeting_code}/mute-all",
+        headers={"Authorization": f"Bearer {attacker_token}"}
+    )
+    assert res2.status_code == 403
+
+    # Guest without auth attempts mute all
+    res3 = client.post(f"/api/meetings/{meeting_code}/mute-all")
+    assert res3.status_code == 403
+

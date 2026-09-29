@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Mic, MicOff, Video as VideoIcon, VideoOff, ShieldCheck, User } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -189,11 +190,17 @@ export const PreJoin: React.FC<PreJoinProps> = ({ meeting, isHost, onJoin }) => 
 
         <Button
           type="submit"
-          className="w-full h-11 text-base font-semibold"
+          className="w-full h-11 text-base font-semibold shadow-xs"
           disabled={!displayName.trim()}
         >
           Join Meeting
         </Button>
+
+        <div className="text-center pt-1">
+          <Link href="/" className="text-xs text-[#9ba1b0] hover:text-white transition-colors">
+            Cancel and return to dashboard
+          </Link>
+        </div>
       </form>
     </div>
   );

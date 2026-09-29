@@ -217,19 +217,27 @@ def run_test():
                 page_a.screenshot(path=os.path.join(SCREENSHOTS_DIR, "10_host_screenshare_attempt.png"))
                 log_step("screenshare_control_exercised", True, "Screen share action triggered without crash")
 
-            # 8. Test Host Moderation: Mute All
-            print("\n--- 10. Host Mute All Moderation ---")
+            # 8. Test Host Moderation: Mute All and Track Verification
+            print("\n--- 10. Host Mute All Moderation & Track Verification ---")
             host_attendees_btn.click()
-            page_a.wait_for_selector("text=Mute All Attendees", timeout=5000)
+            page_a.wait_for_selector("button:has-text('Mute All Attendees')", timeout=5000)
             page_a.locator("button:has-text('Mute All Attendees')").click()
-            page_a.wait_for_selector("text=Requested mute-all for attendees.", timeout=5000)
+            page_a.wait_for_selector("text=Muted all attendees.", timeout=5000)
             page_a.screenshot(path=os.path.join(SCREENSHOTS_DIR, "11_host_mute_all_executed.png"))
             log_step("host_mute_all", True, "Mute All Attendees API dispatched successfully")
 
-            # 9. Verify Non-Host Security: Alice cannot see Mute All or Kick buttons
-            print("\n--- 11. Non-Host Moderation Security ---")
+            # Verify track state in Alice's client (page_b) shows muted
+            time.sleep(3)
             part_attendees_btn.click()
             panel_b = page_b.locator("aside[aria-label='Participants Panel']")
+            panel_b.wait_for(state="visible", timeout=5000)
+            
+            # Check Alice audio icon in drawer or toolbar unmuted state
+            alice_is_muted = page_b.locator("footer button:has-text('Unmute')").count() > 0 or panel_b.locator("svg.text-\\[\\#f87171\\]").count() > 0 or panel_a.locator("svg.text-\\[\\#f87171\\]").count() > 0
+            log_step("alice_audio_track_muted_by_host", bool(alice_is_muted), "Alice audio track confirmed muted following host Mute All")
+
+            # 9. Verify Non-Host Security: Alice cannot see Mute All or Kick buttons
+            print("\n--- 11. Non-Host Moderation Security ---")
             has_mute_all_b = panel_b.locator("text=Mute All Attendees").is_visible()
             has_kick_b = panel_b.locator("button[aria-label*='Remove']").count() > 0
             log_step("non_host_moderation_prevented", (not has_mute_all_b) and (not has_kick_b), f"Participant Mute-All visible: {has_mute_all_b}, Kick visible: {has_kick_b}")
@@ -298,9 +306,12 @@ def run_test():
             print(f"Host Network Failures: {len(evidence['network_errors_host'])}")
             print(f"Participant Network Failures: {len(evidence['network_errors_participant'])}")
 
-            log_step("console_network_health", True, f"Host: {len(evidence['console_logs_host'])} logs, Part: {len(evidence['console_logs_participant'])} logs")
+            critical_exc = [l for l in evidence['console_logs_host'] + evidence['console_logs_participant'] if "[EXC]" in l]
+            critical_net = [l for l in evidence['network_errors_host'] + evidence['network_errors_participant'] if "net::ERR_ABORTED" not in l and "favicon" not in l]
+            unexpected_error_count = len(critical_exc) + len(critical_net)
+            log_step("unexpected_error_count_zero", unexpected_error_count == 0, f"Critical exceptions: {len(critical_exc)}, Unexpected network failures: {len(critical_net)}")
 
-            return True
+            return unexpected_error_count == 0
 
         except Exception as e:
             print(f"Test crashed with error: {e}")

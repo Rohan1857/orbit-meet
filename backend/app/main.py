@@ -16,6 +16,14 @@ from app.seed import seed_database
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # 0. Enforce explicit strong JWT_SECRET in production environment
+    if settings.environment.lower() == "production":
+        insecure_default = "orbitmeet-secure-default-jwt-secret-key-32chars"
+        if not settings.jwt_secret or settings.jwt_secret == insecure_default:
+            raise RuntimeError(
+                "FATAL: JWT_SECRET must be explicitly configured in production environment! Default fallback is forbidden."
+            )
+
     # 1. Ensure tables exist
     Base.metadata.create_all(bind=engine)
 

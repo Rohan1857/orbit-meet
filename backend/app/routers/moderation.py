@@ -66,12 +66,15 @@ async def mute_participant(
     identity: str,
     meeting: Meeting = Depends(verify_host)
 ):
-    # LiveKit track mute
-    return {"status": "muted", "identity": identity}
+    # Call LiveKit server-side track mute
+    success = await LiveKitService.mute_participant(meeting.meeting_code, identity, muted=True)
+    return {"status": "muted", "identity": identity, "success": success}
 
 
 @router.post("/mute-all")
 async def mute_all_participants(
     meeting: Meeting = Depends(verify_host)
 ):
-    return {"status": "muted_all", "meeting_code": meeting.meeting_code}
+    # Call LiveKit server-side mute all
+    muted_count = await LiveKitService.mute_all_participants(meeting.meeting_code)
+    return {"status": "muted_all", "meeting_code": meeting.meeting_code, "muted_count": muted_count}

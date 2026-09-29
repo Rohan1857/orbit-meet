@@ -42,8 +42,8 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-surface/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-15 max-w-6xl items-center justify-between px-4 sm:px-6">
+    <header className="sticky top-0 z-40 w-full border-b border-border bg-surface/95 backdrop-blur-xs">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
         {/* Brand & Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#0e72ed] text-white shadow-sm transition-transform group-hover:scale-105">

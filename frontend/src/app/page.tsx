@@ -98,16 +98,16 @@ export default function DashboardPage() {
 
         {/* Next Meeting Banner Strip (if upcoming exists) */}
         {nextMeeting && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-border bg-gradient-to-r from-surface to-surface-muted p-4 shadow-xs">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#0e72ed]/10 text-[#0e72ed]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-border bg-surface p-4 sm:p-5 shadow-xs">
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0e72ed]/10 text-[#0e72ed] border border-[#0e72ed]/20">
                 <Calendar className="h-5 w-5" />
               </div>
-              <div>
-                <div className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+              <div className="space-y-0.5 min-w-0">
+                <div className="text-[10px] font-bold text-[#0e72ed] uppercase tracking-wider">
                   Up Next
                 </div>
-                <div className="text-sm font-semibold text-text-primary">
+                <div className="text-sm font-bold text-text-primary truncate">
                   {nextMeeting.title}
                 </div>
                 <div className="text-xs text-text-secondary">
@@ -116,7 +116,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <Link href={`/meeting/${nextMeeting.meeting_code}`}>
-              <Button size="sm" className="gap-1.5 self-start sm:self-center">
+              <Button size="sm" className="gap-1.5 self-start sm:self-center shadow-xs">
                 <Video className="h-4 w-4" />
                 <span>Join Now</span>
               </Button>
@@ -136,7 +136,7 @@ export default function DashboardPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsScheduleOpen(true)}
-                className="text-xs text-[#0e72ed] hover:text-[#0b5cdb] h-7 px-2"
+                className="text-xs text-[#0e72ed] hover:text-[#0b5cdb] h-7 px-2 font-medium"
               >
                 + Schedule
               </Button>
@@ -145,6 +145,7 @@ export default function DashboardPage() {
               meetings={upcomingMeetings}
               isLoading={isLoading}
               onRefresh={fetchMeetings}
+              onScheduleClick={() => setIsScheduleOpen(true)}
             />
           </section>
 
