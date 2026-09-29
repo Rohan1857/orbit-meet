@@ -13,6 +13,7 @@ import { ParticipantsPanel } from "@/components/meeting/ParticipantsPanel";
 import { LeaveDialog } from "@/components/meeting/LeaveDialog";
 import { Button } from "@/components/ui/Button";
 import { formatMeetingCode } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 interface PageProps {
   params: Promise<{ meetingId: string }>;
@@ -21,6 +22,7 @@ interface PageProps {
 export default function MeetingRoomPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const rawMeetingCode = resolvedParams.meetingId;
+  const { user } = useAuth();
 
   const [meeting, setMeeting] = useState<Meeting | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,11 +57,17 @@ export default function MeetingRoomPage({ params }: PageProps) {
         if (!mounted) return;
         setMeeting(data);
 
-        // Check if host token is in sessionStorage
-        const savedToken = sessionStorage.getItem(`host_token_${data.meeting_code}`);
-        if (savedToken) {
+        // Check if server returned host token (if owner) or if saved in sessionStorage
+        if (data.host_control_token) {
           setIsHost(true);
-          setHostToken(savedToken);
+          setHostToken(data.host_control_token);
+          sessionStorage.setItem(`host_token_${data.meeting_code}`, data.host_control_token);
+        } else {
+          const savedToken = sessionStorage.getItem(`host_token_${data.meeting_code}`);
+          if (savedToken) {
+            setIsHost(true);
+            setHostToken(savedToken);
+          }
         }
       } catch (err: any) {
         if (!mounted) return;
@@ -76,7 +84,7 @@ export default function MeetingRoomPage({ params }: PageProps) {
     return () => {
       mounted = false;
     };
-  }, [rawMeetingCode]);
+  }, [rawMeetingCode, user]);
 
   // 2. Handle Pre-Join Complete -> obtain LiveKit Token
   const handleJoinFromPreJoin = async ({

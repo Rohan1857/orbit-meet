@@ -1,8 +1,8 @@
 # Orbit Meet — Video Conferencing Platform
 
-Orbit Meet is an original, production-ready video conferencing application built with **Next.js 15 (App Router), FastAPI, SQLite (WAL mode on persistent storage), and LiveKit Cloud WebRTC SFU**.
+Orbit Meet is an original, production-ready video conferencing application built with **Next.js 15 (App Router), FastAPI, SQLite (WAL mode on persistent storage), and LiveKit Cloud WebRTC SFU**, upgraded with full **Email + Password & Google Sign-In authentication**.
 
-Designed from the ground up to provide a responsive conferencing experience with clear visual hierarchy, server-authoritative meeting state, and real multi-participant WebRTC audio/video transport.
+Designed to provide a responsive conferencing experience with clear visual hierarchy, server-authoritative meeting state, user-scoped dashboards, and real multi-participant WebRTC audio/video transport.
 
 ---
 
@@ -40,26 +40,32 @@ LiveKit Cloud SFU
 ```
 
 ### Separation of Concerns
-1. **Frontend (Next.js 15 App Router)**: UI components, pre-join camera/mic preview, device enumeration, video grid layout, client-side code normalization, and WebRTC orchestration via `@livekit/components-react`.
-2. **Backend (FastAPI)**: Single system of record, 10-digit meeting ID generation, LiveKit JWT token signing with scoped video grants, host moderation verification (`x-host-token`), and attendee audit logging.
-3. **Storage (SQLite in WAL mode)**: Persistent volume storage ensuring zero data loss across container redeployments.
+1. **Frontend (Next.js 15 App Router)**: UI components, auth context & route guards, pre-join camera/mic preview, device enumeration, video grid layout, client-side code normalization, and WebRTC orchestration via `@livekit/components-react`.
+2. **Backend (FastAPI)**: Single system of record, user registration & login (bcrypt), Google ID token verification, 10-digit meeting ID generation, LiveKit JWT token signing with scoped video grants, meeting ownership enforcement, host moderation verification, and attendee audit logging.
+3. **Storage (SQLite in WAL mode)**: Persistent volume storage (`/data/zoom_clone.db`) ensuring zero data loss across container redeployments.
 4. **Media SFU (LiveKit Cloud)**: WebRTC media fanout, adaptive simulcast, and STUN/TURN NAT traversal.
 
 ---
 
 ## Key Features
 
-### Core Conferencing
+### Authentication & Access Control
+- **Email + Password**: Secure registration and login hashed with `bcrypt` (12 rounds).
+- **Google Sign-In**: One-tap sign-in via Google Identity Services (GIS) with server-side signature and audience verification.
+- **Cross-Domain Session Management**: Signed JWT `Bearer` token architecture enabling reliable authenticated requests across Vercel frontend and Railway backend domains without third-party cookie blocking.
+- **Meeting Ownership**: Meetings are linked to the creator (`owner_user_id`), automatically granting the owner host moderation rights and sanitizing host control tokens from non-owners.
+- **Scoped Dashboard**: Authenticated users see their upcoming and recent sessions, with instant meeting creation and scheduling.
+- **Unauthenticated Guest Join (P0 Invariant)**: Anyone with an invite link or 10-digit code can enter a display name and join a meeting without an account or redirect to login.
+
+### Conferencing & Realtime Media
 - **Instant Meeting**: One-click meeting launch generating a random 10-digit meeting ID (`XXX XXX XXXX`) and shareable link.
 - **Meeting Scheduling**: Future date/time selection, duration options, description, and automatic dashboard sync.
-- **Persistent Storage**: All meetings, schedules, and attendee audit sessions stored in SQLite with Write-Ahead Logging (WAL).
-- **Upcoming & Recent History**: Filtered, deterministic dashboard views directly querying database records.
+- **Persistent Storage**: All users, meetings, schedules, and attendee audit sessions stored in SQLite with Write-Ahead Logging (WAL).
 - **Pre-Join Experience**: Local camera/microphone preview before entering the room, device toggle controls, and customizable display name.
 - **Realtime Audio & Video**: Multi-user media fanout powered by LiveKit Cloud SFU with active speaker detection, initials avatar fallback, and dynamic tile layout.
 - **Screen Sharing**: One-click display media streaming.
-- **Host Moderation**: Cryptographically secured `host_control_token` cached in `sessionStorage` enabling host-only Mute-All, Kick Participant, and End Meeting for All.
-- **Participant Safety & Security**: Non-host attendees and forged tokens are strictly rejected with `403 Forbidden` on all administrative endpoints.
-- **Seeded Sample Data**: Deterministic, realistic upcoming and recent meetings for immediate review.
+- **Host Moderation**: Server-authoritative host verification enabling host-only Mute-All, Kick Participant, and End Meeting for All.
+- **Participant Safety & Security**: Non-host attendees and cross-user moderation requests are strictly rejected with `403 Forbidden` on all administrative endpoints.
 
 ---
 
@@ -68,7 +74,7 @@ LiveKit Cloud SFU
 | Layer | Technologies |
 |---|---|
 | **Frontend** | Next.js 15.5 (App Router), TypeScript, Tailwind CSS, Lucide React, `@livekit/components-react`, `livekit-client` |
-| **Backend** | Python 3.12+, FastAPI, Uvicorn, SQLAlchemy 2.0, Alembic, `livekit-api`, `pydantic-settings` |
+| **Backend** | Python 3.12+, FastAPI, Uvicorn, SQLAlchemy 2.0, Alembic, `livekit-api`, `bcrypt`, `pyjwt`, `google-auth`, `pydantic-settings` |
 | **Database** | SQLite with WAL mode (`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;`) |
 | **Media Transport** | LiveKit Cloud WebRTC SFU |
 | **Testing** | pytest, httpx, Playwright (dual-browser automation with fake media streams) |
@@ -78,18 +84,31 @@ LiveKit Cloud SFU
 ## Database Schema
 
 ```sql
+-- Users table
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    display_name VARCHAR(100) NOT NULL,
+    password_hash VARCHAR(255),
+    google_sub VARCHAR(64) UNIQUE,
+    avatar_url VARCHAR(512),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Meetings table
 CREATE TABLE meetings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     meeting_code VARCHAR(10) NOT NULL UNIQUE,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    host_name VARCHAR(100) NOT NULL DEFAULT 'Rohan',
+    host_name VARCHAR(100) NOT NULL DEFAULT 'Host',
     meeting_type VARCHAR(20) NOT NULL CHECK (meeting_type IN ('instant', 'scheduled')),
     scheduled_at DATETIME,
     duration_minutes INTEGER DEFAULT 45,
     status VARCHAR(20) NOT NULL CHECK (status IN ('scheduled', 'live', 'ended', 'cancelled')),
     host_control_token VARCHAR(64) NOT NULL,
+    owner_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     started_at DATETIME,
     ended_at DATETIME
@@ -117,29 +136,21 @@ All API routes are prefixed under `/api`.
 | Method | Endpoint | Description | Auth / Headers | Status Codes |
 |---|---|---|---|---|
 | `GET` | `/api/health` | Service health and database connection status | None | 200 |
-| `POST` | `/api/meetings/instant` | Create and launch an instant meeting | None | 201 |
-| `POST` | `/api/meetings` | Schedule a future meeting | None | 201, 422 |
-| `GET` | `/api/meetings/{code}` | Retrieve meeting metadata by 10-digit code | None | 200, 404 |
-| `GET` | `/api/meetings?status=upcoming` | List upcoming scheduled meetings | None | 200 |
-| `GET` | `/api/meetings?status=recent` | List recent / completed meetings | None | 200 |
-| `POST` | `/api/meetings/{code}/join` | Register attendee and issue signed LiveKit JWT | None | 200, 404, 400 |
-| `POST` | `/api/meetings/{code}/end` | End meeting for all attendees | `x-host-token` | 200, 403, 404 |
-| `DELETE` | `/api/meetings/{code}/participants/{id}` | Kick attendee from LiveKit room & database | `x-host-token` | 200, 403, 404 |
-| `POST` | `/api/meetings/{code}/participants/{id}/mute` | Mute specific participant audio track | `x-host-token` | 200, 403, 404 |
-| `POST` | `/api/meetings/{code}/mute-all` | Mute all non-host attendees | `x-host-token` | 200, 403, 404 |
-
-### LiveKit Realtime Media Grants
-When a participant or host joins, FastAPI issues a signed LiveKit `AccessToken` with:
-- `room_join: true`
-- `room: <10-digit meeting code>`
-- `can_publish: true`
-- `can_subscribe: true`
-- `can_publish_data: true`
-- `identity: host_<id>` or `part_<id>`
-- `name: <display_name>`
-- 6-hour expiration TTL
-
-Server secrets (`LIVEKIT_API_SECRET`) remain strictly on the backend and are never sent to the browser.
+| `POST` | `/api/auth/register` | Register new user with email, password, and display name | None | 201, 400 |
+| `POST` | `/api/auth/login` | Authenticate existing user with email and password | None | 200, 401 |
+| `POST` | `/api/auth/google` | Authenticate or register user via Google GIS ID token | None | 200, 401, 409 |
+| `GET` | `/api/auth/me` | Retrieve profile of authenticated user | `Bearer <token>` | 200, 401 |
+| `POST` | `/api/auth/logout` | Invalidate current session client-side | None | 200 |
+| `POST` | `/api/meetings/instant` | Create instant meeting (attaches authenticated owner if logged in) | Optional `Bearer` | 201 |
+| `POST` | `/api/meetings` | Schedule a future meeting | Optional `Bearer` | 201, 422 |
+| `GET` | `/api/meetings/{code}` | Retrieve meeting metadata (sanitizes host token for non-owners) | Optional `Bearer` | 200, 404 |
+| `GET` | `/api/meetings?filter=upcoming` | List upcoming meetings (scoped to authenticated user) | Optional `Bearer` | 200 |
+| `GET` | `/api/meetings?filter=recent` | List recent meetings (scoped to authenticated user) | Optional `Bearer` | 200 |
+| `POST` | `/api/meetings/{code}/join` | Join meeting and issue signed LiveKit JWT (open to guests) | Optional `Bearer` | 200, 404, 400 |
+| `POST` | `/api/meetings/{code}/end` | End meeting for all attendees (owner or host token required) | `Bearer` / `x-host-token` | 200, 403, 404 |
+| `DELETE` | `/api/meetings/{code}/participants/{id}` | Kick attendee from LiveKit room & database | `Bearer` / `x-host-token` | 200, 403, 404 |
+| `POST` | `/api/meetings/{code}/participants/{id}/mute` | Mute specific participant audio track | `Bearer` / `x-host-token` | 200, 403, 404 |
+| `POST` | `/api/meetings/{code}/mute-all` | Mute all non-host attendees | `Bearer` / `x-host-token` | 200, 403, 404 |
 
 ---
 
@@ -201,12 +212,16 @@ LIVEKIT_API_KEY=your-livekit-api-key
 LIVEKIT_API_SECRET=your-livekit-api-secret
 FRONTEND_ORIGIN=http://localhost:3000
 ENVIRONMENT=development
-DEFAULT_HOST_NAME=Rohan
+JWT_SECRET=your-random-32-byte-secret-key
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=43200
+GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
 ```
 
 ### Frontend (`frontend/.env.local`)
 ```ini
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
 ```
 
 ---
@@ -218,20 +233,24 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
 cd backend
 pytest -v
 ```
-Runs 12 test cases verifying:
+Runs 31 automated tests verifying:
 - System health & DB connectivity
+- User registration (validations, password hashing, duplicates)
+- User login (password verification, invalid credentials)
+- Current user retrieval & logout
+- Google Sign-In (new user, existing user, account collision handling, invalid tokens)
 - Instant meeting creation & code generation
 - Scheduling validation & past date rejection
 - Meeting lookup and normalized code formatting
-- Upcoming and recent query filters
-- Join flow & LiveKit token issuance
-- Host-token protected moderation endpoints
-- Forged and invalid host token security rejection (403 Forbidden)
+- Scoped upcoming and recent query filters
+- Join flow & LiveKit token issuance (guests and owners)
+- Meeting ownership assignment and scoped listing isolation
+- Cross-user moderation security rejection (403 Forbidden)
+- Unauthenticated guest access (P0 invariant)
 
 ### Frontend Typecheck & Build
 ```bash
 cd frontend
-npm run typecheck
 npm run build
 ```
 
@@ -241,15 +260,16 @@ Orbit Meet includes an automated dual-browser test suite (`tests/e2e_production_
 python tests/e2e_production_livekit.py
 ```
 This exercises:
-1. Host instant meeting creation on production.
-2. Participant join via invite URL in an isolated browser context.
-3. WebRTC room connection for both clients to LiveKit Cloud.
-4. Mutual audio/video presence verification.
-5. Microphone and camera track state toggling.
-6. Host Mute-All and non-host security rejection.
-7. Host removal of participant and clean rejoin.
-8. Participant leave and host meeting end for all.
-9. Persistent screenshot capture saved under `tests/evidence/`.
+1. Host registration and login on production.
+2. Authenticated dashboard meeting creation.
+3. Participant join via invite URL in an isolated incognito browser context without login.
+4. WebRTC room connection for both clients to LiveKit Cloud.
+5. Mutual audio/video presence verification.
+6. Microphone and camera track state toggling.
+7. Host Mute-All and non-host security rejection.
+8. Host removal of participant and clean rejoin.
+9. Participant leave and host meeting end for all.
+10. Persistent screenshot capture saved under `tests/evidence/`.
 
 ---
 
@@ -264,19 +284,3 @@ This exercises:
 ### Frontend (Vercel)
 1. Deployed using Next.js framework preset with root directory set to `frontend`.
 2. Environment variable: `NEXT_PUBLIC_API_BASE_URL=https://orbitmeet-backend-production.up.railway.app/api`.
-
----
-
-## Assumptions & Security Model
-
-- **Default User**: Per assignment specifications, user authentication is omitted. The application assumes a default host named "Rohan" (initials `RO`).
-- **Security Model**: Host operations are authorized via a session-scoped `host_control_token` issued at meeting creation and verified server-side on every moderation call.
-- **Credential Isolation**: LiveKit API credentials (`LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`) reside exclusively on the server and are never exposed to browser bundles.
-
----
-
-## Known Limitations
-
-- **Single-User Scope**: Without a multi-tenant user authentication layer (e.g. OAuth / OIDC), meeting ownership is session-bound.
-- **Participant Leave Detection**: In the absence of server-side LiveKit Webhook receivers, participant departures are recorded when the user clicks "Leave" or is removed by the host. Abnormal browser crashes rely on LiveKit SFU's built-in participant timeout.
-- **Database Scalability**: SQLite on persistent volume is optimal for single-node deployments; horizontal multi-node scaling would transition the backend to PostgreSQL or Amazon Aurora.

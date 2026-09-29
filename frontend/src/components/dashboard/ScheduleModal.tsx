@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { api } from "@/lib/api";
 import { Meeting } from "@/types";
 import { formatMeetingCode, formatScheduleDisplay } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 interface ScheduleModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
@@ -77,7 +79,7 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
         description: description.trim() || undefined,
         scheduled_at: scheduledDateTime.toISOString(),
         duration_minutes: parseInt(duration, 10),
-        host_name: "Rohan",
+        host_name: user?.display_name || "Host",
       });
 
       if (meeting.host_control_token) {

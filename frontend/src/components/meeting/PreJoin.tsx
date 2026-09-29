@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Meeting } from "@/types";
 import { formatMeetingCode } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 interface PreJoinProps {
   meeting: Meeting;
@@ -18,9 +19,17 @@ interface PreJoinProps {
 }
 
 export const PreJoin: React.FC<PreJoinProps> = ({ meeting, isHost, onJoin }) => {
+  const { user } = useAuth();
   const [displayName, setDisplayName] = useState(
-    isHost ? (meeting.host_name || "Rohan") : ""
+    user?.display_name || (isHost ? (meeting.host_name || "Host") : "")
   );
+
+  useEffect(() => {
+    if (user?.display_name && !displayName) {
+      setDisplayName(user.display_name);
+    }
+  }, [user, displayName]);
+
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);

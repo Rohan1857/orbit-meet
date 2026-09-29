@@ -10,6 +10,12 @@ class Settings(BaseSettings):
     environment: str = "development"
     default_host_name: str = "Rohan"
 
+    # Authentication
+    jwt_secret: str = "orbitmeet-secure-default-jwt-secret-key-32chars"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60 * 24 * 7  # 7 days
+    google_client_id: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

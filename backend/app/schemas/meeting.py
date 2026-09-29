@@ -36,6 +36,7 @@ class MeetingResponse(BaseModel):
     duration_minutes: Optional[int] = 45
     status: str
     host_control_token: Optional[str] = None
+    owner_user_id: Optional[int] = None
     invite_url: Optional[str] = None
     created_at: datetime.datetime
     started_at: Optional[datetime.datetime] = None

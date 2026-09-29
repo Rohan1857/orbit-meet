@@ -1,3 +1,32 @@
+export interface User {
+  id: number;
+  email: string;
+  display_name: string;
+  avatar_url?: string | null;
+  google_sub?: string | null;
+  created_at: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+}
+
+export interface RegisterPayload {
+  email: string;
+  password: string;
+  display_name: string;
+}
+
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+export interface GoogleAuthPayload {
+  credential: string;
+}
+
 export interface Meeting {
   id: number;
   meeting_code: string;
@@ -9,6 +38,7 @@ export interface Meeting {
   duration_minutes?: number | null;
   status: "scheduled" | "live" | "ended" | "cancelled";
   host_control_token?: string | null;
+  owner_user_id?: number | null;
   invite_url?: string | null;
   created_at: string;
   started_at?: string | null;
@@ -43,3 +73,4 @@ export interface JoinMeetingResponse {
   token: string;
   livekit_url: string;
 }
+

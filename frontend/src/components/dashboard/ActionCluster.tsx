@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Video, Plus, Calendar, ScreenShare } from "lucide-react";
 import { api } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 interface ActionClusterProps {
   onScheduleClick: () => void;
@@ -11,6 +12,7 @@ interface ActionClusterProps {
 
 export const ActionCluster: React.FC<ActionClusterProps> = ({ onScheduleClick }) => {
   const router = useRouter();
+  const { user } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,7 +20,7 @@ export const ActionCluster: React.FC<ActionClusterProps> = ({ onScheduleClick })
     setIsCreating(true);
     setError(null);
     try {
-      const meeting = await api.createInstantMeeting({ host_name: "Rohan" });
+      const meeting = await api.createInstantMeeting({ host_name: user?.display_name || "Host" });
       if (meeting.host_control_token) {
         sessionStorage.setItem(`host_token_${meeting.meeting_code}`, meeting.host_control_token);
       }
@@ -34,7 +36,7 @@ export const ActionCluster: React.FC<ActionClusterProps> = ({ onScheduleClick })
     setError(null);
     try {
       const meeting = await api.createInstantMeeting({
-        host_name: "Rohan",
+        host_name: user?.display_name || "Host",
         title: "Screen Share Session",
       });
       if (meeting.host_control_token) {
