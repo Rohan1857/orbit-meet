@@ -1,23 +1,36 @@
 import datetime
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+
 from app.config import settings
 from app.database import Base, engine, SessionLocal
 from app.models.meeting import Meeting
+from app.models.user import User
 from app.routers.meetings import router as meetings_router
 from app.routers.moderation import router as moderation_router
+from app.routers.auth import router as auth_router
 from app.seed import seed_database
 
-# Create DB tables
-Base.metadata.create_all(bind=engine)
-
-from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Ensure tables exist
+    # 1. Ensure tables exist
     Base.metadata.create_all(bind=engine)
-    # Auto-seed if empty
+
+    # 2. Add owner_user_id to meetings if migrating legacy database
+    with engine.connect() as conn:
+        try:
+            res = conn.execute(text("PRAGMA table_info(meetings)"))
+            cols = [r[1] for r in res.fetchall()]
+            if "owner_user_id" not in cols:
+                conn.execute(text("ALTER TABLE meetings ADD COLUMN owner_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL"))
+                conn.commit()
+        except Exception as e:
+            print(f"Schema column check: {e}")
+
+    # 3. Auto-seed if empty
     db = SessionLocal()
     try:
         if db.query(Meeting).count() == 0:
@@ -25,6 +38,7 @@ async def lifespan(app: FastAPI):
     finally:
         db.close()
     yield
+
 
 app = FastAPI(
     title="OrbitMeet API",
@@ -48,9 +62,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
 app.include_router(meetings_router)
 app.include_router(moderation_router)
-
 
 
 @app.get("/api/health", tags=["health"])

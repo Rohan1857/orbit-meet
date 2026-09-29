@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/dashboard/Navbar";
 import { ActionCluster } from "@/components/dashboard/ActionCluster";
 import { UpcomingList } from "@/components/dashboard/UpcomingList";
@@ -12,15 +13,27 @@ import { api } from "@/lib/api";
 import { Meeting } from "@/types";
 import { Video, Calendar } from "lucide-react";
 import { formatScheduleDisplay } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { user, isLoading: isAuthLoading } = useAuth();
+
   const [upcomingMeetings, setUpcomingMeetings] = useState<Meeting[]>([]);
   const [recentMeetings, setRecentMeetings] = useState<Meeting[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isScheduleOpen, setIsScheduleOpen] = useState<boolean>(false);
   const [backendError, setBackendError] = useState<string | null>(null);
 
+  // Protected route: Redirect unauthenticated users to /login
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.replace("/login");
+    }
+  }, [isAuthLoading, user, router]);
+
   const fetchMeetings = useCallback(async () => {
+    if (!user) return;
     setIsLoading(true);
     setBackendError(null);
     try {
@@ -37,11 +50,25 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    fetchMeetings();
-  }, [fetchMeetings]);
+    if (user) {
+      fetchMeetings();
+    }
+  }, [user, fetchMeetings]);
+
+  if (isAuthLoading || (!user && !isAuthLoading)) {
+    return (
+      <div className="min-h-screen bg-app flex flex-col items-center justify-center space-y-3">
+        <svg className="h-7 w-7 animate-spin text-[#0e72ed]" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        <span className="text-xs text-text-muted">Loading dashboard...</span>
+      </div>
+    );
+  }
 
   const nextMeeting = upcomingMeetings[0];
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Copy, Check, Video, CalendarCheck } from "lucide-react";
@@ -10,9 +10,12 @@ import { Input } from "@/components/ui/Input";
 import { api } from "@/lib/api";
 import { Meeting } from "@/types";
 import { formatMeetingCode, formatScheduleDisplay } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 export default function SchedulePage() {
   const router = useRouter();
+  const { user, isLoading: isAuthLoading } = useAuth();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
@@ -22,6 +25,24 @@ export default function SchedulePage() {
   const [error, setError] = useState<string | null>(null);
   const [createdMeeting, setCreatedMeeting] = useState<Meeting | null>(null);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.replace("/login?redirect=/schedule");
+    }
+  }, [isAuthLoading, user, router]);
+
+  if (isAuthLoading || (!user && !isAuthLoading)) {
+    return (
+      <div className="min-h-screen bg-app flex flex-col items-center justify-center space-y-3">
+        <svg className="h-7 w-7 animate-spin text-[#0e72ed]" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        <span className="text-xs text-text-muted">Loading schedule...</span>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +74,7 @@ export default function SchedulePage() {
         description: description.trim() || undefined,
         scheduled_at: scheduledDateTime.toISOString(),
         duration_minutes: parseInt(duration, 10),
-        host_name: "Rohan",
+        host_name: user?.display_name || "Host",
       });
 
       if (meeting.host_control_token) {

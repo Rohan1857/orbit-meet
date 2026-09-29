@@ -28,7 +28,9 @@ class MeetingService:
         raise RuntimeError("Failed to generate unique meeting code after 10 attempts")
 
     @classmethod
-    def create_instant_meeting(cls, db: Session, payload: InstantMeetingCreate) -> Meeting:
+    def create_instant_meeting(
+        cls, db: Session, payload: InstantMeetingCreate, owner_user_id: Optional[int] = None
+    ) -> Meeting:
         code = cls.generate_meeting_code(db)
         host_token = secrets.token_hex(16)
         now = datetime.datetime.now(datetime.timezone.utc)
@@ -43,6 +45,7 @@ class MeetingService:
             meeting_type="instant",
             status="live",
             host_control_token=host_token,
+            owner_user_id=owner_user_id,
             created_at=now,
             started_at=now,
             duration_minutes=45
@@ -53,7 +56,9 @@ class MeetingService:
         return meeting
 
     @classmethod
-    def create_scheduled_meeting(cls, db: Session, payload: ScheduledMeetingCreate) -> Meeting:
+    def create_scheduled_meeting(
+        cls, db: Session, payload: ScheduledMeetingCreate, owner_user_id: Optional[int] = None
+    ) -> Meeting:
         code = cls.generate_meeting_code(db)
         host_token = secrets.token_hex(16)
         now = datetime.datetime.now(datetime.timezone.utc)
@@ -69,6 +74,7 @@ class MeetingService:
             duration_minutes=payload.duration_minutes or 45,
             status="scheduled",
             host_control_token=host_token,
+            owner_user_id=owner_user_id,
             created_at=now
         )
         db.add(meeting)
@@ -84,25 +90,27 @@ class MeetingService:
         return db.query(Meeting).filter(Meeting.meeting_code == normalized).first()
 
     @classmethod
-    def list_upcoming_meetings(cls, db: Session, limit: int = 10) -> List[Meeting]:
+    def list_upcoming_meetings(
+        cls, db: Session, owner_user_id: Optional[int] = None, limit: int = 10
+    ) -> List[Meeting]:
         now = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=30)
-        return (
-            db.query(Meeting)
-            .filter(
-                Meeting.status == "scheduled",
-                (Meeting.scheduled_at >= now) | (Meeting.scheduled_at.is_(None))
-            )
-            .order_by(Meeting.scheduled_at.asc().nullslast())
-            .limit(limit)
-            .all()
+        query = db.query(Meeting).filter(
+            Meeting.status == "scheduled",
+            (Meeting.scheduled_at >= now) | (Meeting.scheduled_at.is_(None))
         )
+        if owner_user_id is not None:
+            query = query.filter(Meeting.owner_user_id == owner_user_id)
+        return query.order_by(Meeting.scheduled_at.asc().nullslast()).limit(limit).all()
 
     @classmethod
-    def list_recent_meetings(cls, db: Session, limit: int = 10) -> List[Meeting]:
+    def list_recent_meetings(
+        cls, db: Session, owner_user_id: Optional[int] = None, limit: int = 10
+    ) -> List[Meeting]:
+        query = db.query(Meeting).filter(Meeting.status.in_(["ended", "live"]))
+        if owner_user_id is not None:
+            query = query.filter(Meeting.owner_user_id == owner_user_id)
         return (
-            db.query(Meeting)
-            .filter(Meeting.status.in_(["ended", "live"]))
-            .order_by(func.coalesce(Meeting.ended_at, Meeting.started_at, Meeting.created_at).desc())
+            query.order_by(func.coalesce(Meeting.ended_at, Meeting.started_at, Meeting.created_at).desc())
             .limit(limit)
             .all()
         )

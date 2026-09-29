@@ -7,7 +7,7 @@ def test_host_moderation_unauthorized_without_token(client):
 
     # Try to end without token
     end_res = client.post(f"/api/meetings/{meeting_code}/end")
-    assert end_res.status_code == 422  # Missing header
+    assert end_res.status_code == 403  # Missing token rejected with 403 Forbidden
 
     # Try to end with wrong token
     end_res_wrong = client.post(

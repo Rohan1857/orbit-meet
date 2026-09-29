@@ -4,17 +4,25 @@
       "passed": true,
       "details": "Status: 200, Database: connected"
     },
+    "host_registration_and_login": {
+      "passed": true,
+      "details": "Host registered and logged in as host_e2e_1790711137@orbitmeet.test"
+    },
     "create_instant_meeting": {
       "passed": true,
-      "details": "Code: 2984494087"
+      "details": "Code: 8040372823"
     },
     "host_livekit_connection": {
       "passed": true,
-      "details": "Host connected to room 2984494087"
+      "details": "Host connected to room 8040372823"
+    },
+    "guest_join_no_login_redirect": {
+      "passed": true,
+      "details": "Guest stayed on https://orbitmeet-nu.vercel.app/join?meeting=8040372823 without auth redirect"
     },
     "participant_livekit_connection": {
       "passed": true,
-      "details": "Alice connected to room 2984494087"
+      "details": "Alice connected to room 8040372823"
     },
     "host_sees_alice_videotile": {
       "passed": true,
@@ -22,15 +30,15 @@
     },
     "host_sees_both_in_panel": {
       "passed": true,
-      "details": "Alice: True, Rohan: True"
+      "details": "Alice: True, Host: True"
     },
-    "participant_sees_rohan_videotile": {
+    "participant_sees_host_videotile": {
       "passed": true,
-      "details": "Rohan video tile present in Alice stage"
+      "details": "Host video tile present in Alice stage"
     },
     "participant_sees_both_in_panel": {
       "passed": true,
-      "details": "Rohan: True, Alice: True"
+      "details": "Host: True, Alice: True"
     },
     "host_mute_toggle": {
       "passed": true,
@@ -74,7 +82,7 @@
     },
     "participant_normal_leave": {
       "passed": true,
-      "details": "Participant left meeting and returned to dashboard"
+      "details": "Participant left meeting and returned from room"
     },
     "host_end_meeting_for_all": {
       "passed": true,
@@ -94,10 +102,7 @@
     "[error] Failed to load resource: the server responded with a status of 404 ()"
   ],
   "network_errors_host": [
-    "GET https://orbitmeet-nu.vercel.app/meeting/2984494087?_rsc=ZmCQ44b92m4mXe_R - net::ERR_ABORTED"
+    "GET https://orbitmeet-nu.vercel.app/meeting/8040372823?_rsc=ZmCQ44b92m4mXe_R - net::ERR_ABORTED"
   ],
-  "network_errors_participant": [
-    "GET https://orbitmeet-nu.vercel.app/meeting/2984494087?_rsc=a87G1evOvoS83bya - net::ERR_ABORTED",
-    "GET https://orbitmeet-nu.vercel.app/meeting/9245463914?_rsc=1p-R_iEY6bj0jY31 - net::ERR_ABORTED"
-  ]
+  "network_errors_participant": []
 }
