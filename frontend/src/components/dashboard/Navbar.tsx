@@ -60,10 +60,10 @@ export const Navbar: React.FC = () => {
 
           {/* User Profile Pill */}
           <div className="flex items-center gap-2.5 pl-2 border-l border-border-subtle">
-            <Avatar name="Dhruv Singh" size="sm" />
+            <Avatar name="Rohan" size="sm" />
             <div className="hidden sm:flex flex-col text-left">
               <span className="text-xs font-semibold text-text-primary leading-tight">
-                Dhruv Singh
+                Rohan
               </span>
               <span className="text-[11px] text-text-muted leading-none">
                 Host Account

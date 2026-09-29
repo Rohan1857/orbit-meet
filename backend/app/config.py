@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     livekit_api_secret: str = ""
     frontend_origin: str = "http://localhost:3000"
     environment: str = "development"
-    default_host_name: str = "Dhruv Singh"
+    default_host_name: str = "Rohan"
 
     model_config = SettingsConfigDict(
         env_file=".env",

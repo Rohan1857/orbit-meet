@@ -113,7 +113,7 @@ def run_test():
             join_btn.click()
 
             page_b.wait_for_url(lambda url: f"/meeting/{meeting_code}" in url, timeout=10000)
-            name_input = page_b.locator("input[placeholder*='Dhruv Singh']")
+            name_input = page_b.locator("input[placeholder*='Rohan']")
             name_input.wait_for(state="visible", timeout=10000)
             name_input.fill("Alice Evaluator")
             page_b.screenshot(path=os.path.join(SCREENSHOTS_DIR, "05_participant_prejoin.png"))
@@ -138,12 +138,12 @@ def run_test():
             page_a.screenshot(path=os.path.join(SCREENSHOTS_DIR, "07_host_attendees_drawer.png"))
 
             host_panel_alice = panel_a.locator("text=Alice Evaluator").first.is_visible()
-            host_panel_dhruv = panel_a.locator("text=Dhruv Singh").first.is_visible()
-            log_step("host_sees_both_in_panel", host_panel_alice and host_panel_dhruv, f"Alice: {host_panel_alice}, Dhruv: {host_panel_dhruv}")
+            host_panel_rohan = panel_a.locator("text=Rohan").first.is_visible()
+            log_step("host_sees_both_in_panel", host_panel_alice and host_panel_rohan, f"Alice: {host_panel_alice}, Rohan: {host_panel_rohan}")
 
             # Participant checks presence
-            part_sees_dhruv_tile = page_b.locator(".relative span:has-text('Dhruv Singh')").first.is_visible()
-            log_step("participant_sees_dhruv_videotile", part_sees_dhruv_tile, "Dhruv video tile present in Alice stage")
+            part_sees_rohan_tile = page_b.locator(".relative span:has-text('Rohan')").first.is_visible()
+            log_step("participant_sees_rohan_videotile", part_sees_rohan_tile, "Rohan video tile present in Alice stage")
 
             part_attendees_btn = page_b.locator("button[title='Participants']")
             part_attendees_btn.click()
@@ -151,9 +151,9 @@ def run_test():
             panel_b.wait_for(state="visible", timeout=5000)
             page_b.screenshot(path=os.path.join(SCREENSHOTS_DIR, "08_participant_attendees_drawer.png"))
 
-            part_panel_dhruv = panel_b.locator("text=Dhruv Singh").first.is_visible()
+            part_panel_rohan = panel_b.locator("text=Rohan").first.is_visible()
             part_panel_alice = panel_b.locator("text=Alice Evaluator").first.is_visible()
-            log_step("participant_sees_both_in_panel", part_panel_dhruv and part_panel_alice, f"Dhruv: {part_panel_dhruv}, Alice: {part_panel_alice}")
+            log_step("participant_sees_both_in_panel", part_panel_rohan and part_panel_alice, f"Rohan: {part_panel_rohan}, Alice: {part_panel_alice}")
 
             # Close panels
             page_a.locator("button[aria-label='Close attendees panel']").click()
@@ -237,7 +237,7 @@ def run_test():
             print("\n--- 12. Participant Rejoining ---")
             page_b.goto(f"{FRONTEND_URL}/meeting/{meeting_code}", wait_until="networkidle")
             page_b.wait_for_selector("text=Join Meeting", timeout=10000)
-            name_input_b = page_b.locator("input[placeholder*='Dhruv Singh']")
+            name_input_b = page_b.locator("input[placeholder*='Rohan']")
             name_input_b.fill("Alice (Rejoined)")
             page_b.locator("button:has-text('Join Meeting')").click()
             page_b.wait_for_selector("header span:has-text('Connected')", timeout=15000)

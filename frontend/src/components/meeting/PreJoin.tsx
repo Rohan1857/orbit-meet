@@ -19,7 +19,7 @@ interface PreJoinProps {
 
 export const PreJoin: React.FC<PreJoinProps> = ({ meeting, isHost, onJoin }) => {
   const [displayName, setDisplayName] = useState(
-    isHost ? (meeting.host_name || "Dhruv Singh") : ""
+    isHost ? (meeting.host_name || "Rohan") : ""
   );
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
@@ -170,7 +170,7 @@ export const PreJoin: React.FC<PreJoinProps> = ({ meeting, isHost, onJoin }) => 
           <input
             type="text"
             className="w-full h-10 rounded-md border border-[#3a3f4d] bg-[#252830] px-3 py-2 text-sm text-white placeholder:text-[#6c7280] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0e72ed]"
-            placeholder="e.g. Dhruv Singh, Ayan, Rohan..."
+            placeholder="e.g. Rohan, Alice, Ayan..."
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             required

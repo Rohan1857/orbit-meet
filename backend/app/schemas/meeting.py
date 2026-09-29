@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class InstantMeetingCreate(BaseModel):
-    host_name: Optional[str] = Field(default="Dhruv Singh", max_length=100)
+    host_name: Optional[str] = Field(default="Rohan", max_length=100)
     title: Optional[str] = Field(default=None, max_length=255)
 
 
@@ -13,7 +13,7 @@ class ScheduledMeetingCreate(BaseModel):
     description: Optional[str] = Field(default=None, max_length=2000)
     scheduled_at: datetime.datetime
     duration_minutes: Optional[int] = Field(default=45, ge=15, le=480)
-    host_name: Optional[str] = Field(default="Dhruv Singh", max_length=100)
+    host_name: Optional[str] = Field(default="Rohan", max_length=100)
 
     @field_validator("scheduled_at")
     @classmethod

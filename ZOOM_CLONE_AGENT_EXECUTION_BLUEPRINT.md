@@ -677,7 +677,7 @@ Request:
 
 ```json
 {
-  "host_name": "Dhruv Singh"
+  "host_name": "Rohan"
 }
 ```
 
@@ -687,7 +687,7 @@ Response:
 {
   "meeting_id": 12,
   "meeting_code": "8231946621",
-  "title": "Dhruv's Meeting",
+  "title": "Rohan's Meeting",
   "status": "live",
   "invite_url": "https://.../join?meeting=8231946621"
 }
@@ -709,7 +709,7 @@ Request:
   "description": "Weekly project sync",
   "scheduled_at": "2026-10-02T16:00:00+05:30",
   "duration_minutes": 45,
-  "host_name": "Dhruv Singh"
+  "host_name": "Rohan"
 }
 ```
 
@@ -1164,8 +1164,8 @@ Right:
 Use a convincing fictional profile:
 
 ```text
-Dhruv Singh
-DS
+Rohan
+RO
 ```
 
 Do not implement authentication unless time permits.
@@ -1467,9 +1467,9 @@ Panel contents:
 Participants (N)
 Search optional
 
-Dhruv Singh (Host)
+Rohan (Host)
 Ayan
-Rohan
+Aditya
 ```
 
 For host, participant row menu may include:

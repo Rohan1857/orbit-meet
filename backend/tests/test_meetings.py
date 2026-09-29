@@ -3,14 +3,14 @@ import pytest
 
 
 def test_create_instant_meeting(client):
-    response = client.post("/api/meetings/instant", json={"host_name": "Dhruv Singh"})
+    response = client.post("/api/meetings/instant", json={"host_name": "Rohan"})
     assert response.status_code == 201
     data = response.json()
     assert len(data["meeting_code"]) == 10
     assert data["meeting_code"].isdigit()
     assert data["status"] == "live"
     assert data["meeting_type"] == "instant"
-    assert data["host_name"] == "Dhruv Singh"
+    assert data["host_name"] == "Rohan"
     assert "host_control_token" in data
     assert "invite_url" in data
 
@@ -22,7 +22,7 @@ def test_schedule_meeting_success(client):
         "description": "Discussion on Q4 deliverables",
         "scheduled_at": future.isoformat(),
         "duration_minutes": 60,
-        "host_name": "Dhruv Singh"
+        "host_name": "Rohan"
     }
     response = client.post("/api/meetings", json=payload)
     assert response.status_code == 201

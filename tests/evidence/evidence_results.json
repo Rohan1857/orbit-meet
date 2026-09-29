@@ -22,15 +22,15 @@
     },
     "host_sees_both_in_panel": {
       "passed": true,
-      "details": "Alice: True, Dhruv: True"
+      "details": "Alice: True, Rohan: True"
     },
-    "participant_sees_dhruv_videotile": {
+    "participant_sees_rohan_videotile": {
       "passed": true,
-      "details": "Dhruv video tile present in Alice stage"
+      "details": "Rohan video tile present in Alice stage"
     },
     "participant_sees_both_in_panel": {
       "passed": true,
-      "details": "Dhruv: True, Alice: True"
+      "details": "Rohan: True, Alice: True"
     },
     "host_mute_toggle": {
       "passed": true,

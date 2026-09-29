@@ -65,6 +65,6 @@ Cloud platforms like Railway run containers on ephemeral filesystems; any restar
 OAuth2 / OIDC (e.g. Google, GitHub, WorkOS) to bind meeting ownership to user IDs, enable personal meeting rooms, protect user profile settings, and prevent meeting link spoofing.
 
 ### 15. What tradeoffs were intentionally made for the assignment?
-- No authentication required: Assumed single default host ("Dhruv Singh") per assignment specification.
+- No authentication required: Assumed single default host ("Rohan") per assignment specification.
 - Session-scoped host tokens: Secured administrative endpoints without needing full multi-user RBAC.
 - Managed LiveKit Cloud: Avoided self-hosting and maintaining complex SFU infrastructure.

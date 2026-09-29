@@ -53,7 +53,7 @@ export default function SchedulePage() {
         description: description.trim() || undefined,
         scheduled_at: scheduledDateTime.toISOString(),
         duration_minutes: parseInt(duration, 10),
-        host_name: "Dhruv Singh",
+        host_name: "Rohan",
       });
 
       if (meeting.host_control_token) {

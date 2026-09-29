@@ -5,14 +5,14 @@ Build an original, production-ready Zoom-style video conferencing application ("
 The system satisfies all core assignment requirements with human-authored UI, solid relational persistence, real-time media communication, and host controls, strictly adhering to Ponytail (minimalism/YAGNI) and Anti-AI-Slop standards.
 
 ## 2. Personas & Assumptions
-- **Assumed User**: Single default signed-in user ("Dhruv Singh", initials `DS`). No login/registration flow required.
+- **Assumed User**: Single default signed-in user ("Rohan", initials `RO`). No login/registration flow required.
 - **Participant**: Any remote attendee joining via meeting code or invite link, entering their display name in pre-join preview.
 - **Host**: The user who initiates or schedules the meeting, granted administrative controls (mute all, remove attendee, end meeting) via a secure `host_control_token` held in client session storage.
 
 ## 3. Functional Requirements
 
 ### 3.1 Dashboard & Navigation
-- Top navigation with product logo (`OrbitMeet`), settings/help icons, and default user avatar (`DS`).
+- Top navigation with product logo (`OrbitMeet`), settings/help icons, and default user avatar (`RO`).
 - Primary action cluster:
   - **New Meeting**: Instantly creates a live meeting in SQLite, obtains a meeting code, and transitions to `/meeting/{code}`.
   - **Join**: Navigates to `/join` with meeting code/link input.

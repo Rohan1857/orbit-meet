@@ -11,7 +11,7 @@ class Meeting(Base):
     meeting_code = Column(String(10), unique=True, index=True, nullable=False)
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
-    host_name = Column(String(100), nullable=False, default="Dhruv Singh")
+    host_name = Column(String(100), nullable=False, default="Rohan")
     meeting_type = Column(String(20), nullable=False, default="instant")
     scheduled_at = Column(DateTime(timezone=True), nullable=True, index=True)
     duration_minutes = Column(Integer, nullable=True, default=45)

@@ -9,7 +9,7 @@ CREATE TABLE meetings (
     meeting_code VARCHAR(10) NOT NULL UNIQUE,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    host_name VARCHAR(100) NOT NULL DEFAULT 'Dhruv Singh',
+    host_name VARCHAR(100) NOT NULL DEFAULT 'Rohan',
     meeting_type VARCHAR(20) NOT NULL CHECK (meeting_type IN ('instant', 'scheduled')),
     scheduled_at DATETIME,
     duration_minutes INTEGER DEFAULT 45,
@@ -59,7 +59,7 @@ CREATE INDEX idx_participant_sessions_meeting ON participant_sessions(meeting_id
 
 ### 2. `ParticipantSession`
 - `meeting_id`: Foreign key to `meetings.id`.
-- `identity`: Unique LiveKit participant identity string (e.g. `host_dhruv_8f3a` or `part_rohan_9c2b`).
+- `identity`: Unique LiveKit participant identity string (e.g. `host_rohan_8f3a` or `part_alice_9c2b`).
 - `display_name`: Human-readable name entered in pre-join or default user profile.
 - `role`: `host` or `participant`.
 - `joined_at` & `left_at`: Track attendee presence and duration for session auditing.

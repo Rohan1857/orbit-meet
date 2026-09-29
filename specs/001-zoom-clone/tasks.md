@@ -29,7 +29,7 @@ Target Branch: feature/001-zoom-clone
 - [x] [TASK-015] Define design tokens in `frontend/src/styles/tokens.css` (neutral light surfaces, dark meeting room, Zoom-blue accent, 6-12px radii)
 - [x] [TASK-016] [P] Build reusable UI primitives: `Button`, `Input`, `Dialog`, `Avatar`, `Badge` in `frontend/src/components/ui/`
 - [x] [TASK-017] [P] Implement centralized API client with typed methods in `frontend/src/lib/api.ts`
-- [x] [TASK-018] Build top navigation bar with `OrbitMeet` branding, search/settings, and default user `Dhruv Singh` (`DS`) in `frontend/src/components/dashboard/Navbar.tsx`
+- [x] [TASK-018] Build top navigation bar with `OrbitMeet` branding, search/settings, and default user `Rohan` (`RO`) in `frontend/src/components/dashboard/Navbar.tsx`
 
 ## Phase 6: Dashboard & Meeting Management UI
 - [x] [TASK-019] Build Dashboard Action Cluster (New Meeting, Join, Schedule, Share Screen) in `frontend/src/components/dashboard/ActionCluster.tsx`

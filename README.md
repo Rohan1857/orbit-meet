@@ -76,7 +76,7 @@ CREATE TABLE meetings (
     meeting_code VARCHAR(10) NOT NULL UNIQUE,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    host_name VARCHAR(100) NOT NULL DEFAULT 'Dhruv Singh',
+    host_name VARCHAR(100) NOT NULL DEFAULT 'Rohan',
     meeting_type VARCHAR(20) NOT NULL CHECK (meeting_type IN ('instant', 'scheduled')),
     scheduled_at DATETIME,
     duration_minutes INTEGER DEFAULT 45,
@@ -207,6 +207,6 @@ npm run build
 
 ## Assumptions & Originality Statement
 
-- **Default User**: Per assignment specifications, user authentication is omitted. The application assumes a default logged-in host named "Dhruv Singh" (initials `DS`).
+- **Default User**: Per assignment specifications, user authentication is omitted. The application assumes a default logged-in host named "Rohan" (initials `RO`).
 - **Security Model**: Host operations are authorized via a session-scoped `host_control_token` generated at meeting creation. LiveKit API keys never leave the server.
 - **Originality**: All components, styling tokens, database models, and service logic were authored specifically for OrbitMeet from scratch. Zero copied code from existing tutorial repositories.

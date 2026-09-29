@@ -35,7 +35,7 @@ The assignment explicitly specifies SQLite. In containerized environments like R
 Issue a cryptographically secure `host_control_token` (UUID4 / hex) upon meeting creation, returned only in the initial creation response and held in the host browser's `sessionStorage`. Host moderation endpoints require this token via header `X-Host-Token`.
 
 ### Rationale
-The assignment specifies no authentication (single default user "Dhruv Singh"). However, leaving administrative actions (mute-all, kick participant, end meeting) open to any client sending `{"role": "host"}` creates an unexplainable security flaw. A session-scoped host token provides authorization without adding multi-user auth schemas or OAuth complexity (Ponytail / YAGNI).
+The assignment specifies no authentication (single default user "Rohan"). However, leaving administrative actions (mute-all, kick participant, end meeting) open to any client sending `{"role": "host"}` creates an unexplainable security flaw. A session-scoped host token provides authorization without adding multi-user auth schemas or OAuth complexity (Ponytail / YAGNI).
 
 ### Alternatives Considered
 - **Full OAuth / JWT User System**: Violates YAGNI; adds unnecessary complexity for single-user assignment scope.

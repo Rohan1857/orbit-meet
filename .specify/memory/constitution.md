@@ -23,7 +23,7 @@
 - **Backend**: Python 3.12+, FastAPI, SQLAlchemy 2.x, Alembic, `livekit-api`.
 - **Database**: SQLite with WAL mode enabled. Persisted at `/data/zoom_clone.db` in production (persistent volume) and `./zoom_clone.db` in development.
 - **Media Transport**: LiveKit Cloud for WebRTC audio/video/screen-share. FastAPI issues short-lived participant tokens; LiveKit API secrets NEVER reach client.
-- **Session & Identity**: No authentication required per assignment. Default user is "Dhruv Singh" (initials "DS"). Host authorization uses a cryptographically random `host_control_token` delivered on creation and stored in `sessionStorage`.
+- **Session & Identity**: No authentication required per assignment. Default user is "Rohan" (initials "RO"). Host authorization uses a cryptographically random `host_control_token` delivered on creation and stored in `sessionStorage`.
 
 ## 2. Hard Verification Gates
 - No mock fixtures allowed in production paths.

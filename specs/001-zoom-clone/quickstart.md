@@ -41,7 +41,7 @@ The frontend will run at `http://localhost:3000` and communicate with FastAPI at
 
 ### Scenario A: Instant Meeting Launch (Host)
 1. Navigate to `http://localhost:3000`.
-2. Observe dashboard shell with "Dhruv Singh" default profile and seeded upcoming/recent meetings.
+2. Observe dashboard shell with "Rohan" default profile and seeded upcoming/recent meetings.
 3. Click **New Meeting**.
 4. **Expected Outcome**:
    - Button shows subtle loading state.
@@ -73,22 +73,22 @@ The frontend will run at `http://localhost:3000` and communicate with FastAPI at
 1. In Browser 1 (Host), launch an instant meeting.
 2. Copy invite link via meeting toolbar or dashboard.
 3. Open an Incognito window or second browser context (Browser 2) and paste invite link.
-4. Join as "Rohan".
+4. Join as "Alice".
 5. **Expected Outcome**:
    - Both browsers show 2-column video grid.
    - Audio and video stream between both browsers over LiveKit SFU.
-   - Participant panel lists "Dhruv Singh (Host)" and "Rohan".
+   - Participant panel lists "Rohan (Host)" and "Alice".
 
 ### Scenario E: Camera Fallback & Mute Status
 1. In Browser 2, click **Stop Video**.
 2. **Expected Outcome**:
-   - Browser 1 immediately replaces Browser 2's video track with an initials tile ("R").
+   - Browser 1 immediately replaces Browser 2's video track with an initials tile ("A").
    - Browser 2 clicks **Mute**; microphone icon reflects muted state in Browser 1's tile badge.
 
 ### Scenario F: Host Moderation (Mute / Kick)
 1. In Browser 1 (Host), open the **Participants** drawer.
-2. Click **Mute** next to "Rohan" -> Browser 2 microphone is muted via server-side LiveKit action.
-3. Click **Remove** next to "Rohan" -> Browser 2 is disconnected with notice "You were removed from the meeting".
+2. Click **Mute** next to "Alice" -> Browser 2 microphone is muted via server-side LiveKit action.
+3. Click **Remove** next to "Alice" -> Browser 2 is disconnected with notice "You were removed from the meeting".
 
 ### Scenario G: Meeting Termination & Persistence Audit
 1. In Browser 1, click **Leave** -> select **End meeting for all**.

@@ -30,7 +30,7 @@ LiveKit Cloud SFU
 To avoid collisions and enable predictable roles, participant identities follow this pattern:
 
 - **Host**: `host_{normalized_name}_{random_hex_4}`
-  - Example: `host_dhruv_a8f1`
+  - Example: `host_rohan_a8f1`
 - **Participant**: `user_{normalized_name}_{random_hex_4}`
   - Example: `user_ayan_9b2e`
 

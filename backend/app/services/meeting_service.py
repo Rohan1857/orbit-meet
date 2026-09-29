@@ -32,7 +32,7 @@ class MeetingService:
         code = cls.generate_meeting_code(db)
         host_token = secrets.token_hex(16)
         now = datetime.datetime.now(datetime.timezone.utc)
-        host_name = payload.host_name or "Dhruv Singh"
+        host_name = payload.host_name or "Rohan"
         title = payload.title or f"{host_name}'s Meeting"
 
         meeting = Meeting(
@@ -57,7 +57,7 @@ class MeetingService:
         code = cls.generate_meeting_code(db)
         host_token = secrets.token_hex(16)
         now = datetime.datetime.now(datetime.timezone.utc)
-        host_name = payload.host_name or "Dhruv Singh"
+        host_name = payload.host_name or "Rohan"
 
         meeting = Meeting(
             meeting_code=code,

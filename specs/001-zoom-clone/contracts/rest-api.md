@@ -28,8 +28,8 @@ Base URL: `http://localhost:8000/api` (dev) / `https://<backend-domain>/api` (pr
 - **Request Body**:
 ```json
 {
-  "host_name": "Dhruv Singh",
-  "title": "Dhruv's Meeting"
+  "host_name": "Rohan",
+  "title": "Rohan's Meeting"
 }
 ```
 - **Response 201**:
@@ -37,10 +37,10 @@ Base URL: `http://localhost:8000/api` (dev) / `https://<backend-domain>/api` (pr
 {
   "meeting_id": 1,
   "meeting_code": "8231946621",
-  "title": "Dhruv's Meeting",
+  "title": "Rohan's Meeting",
   "status": "live",
   "meeting_type": "instant",
-  "host_name": "Dhruv Singh",
+  "host_name": "Rohan",
   "host_control_token": "a4f89b12c7e0481283e7481f9b31d041",
   "invite_url": "http://localhost:3000/join?meeting=8231946621",
   "created_at": "2026-09-29T23:25:00Z"
@@ -58,7 +58,7 @@ Base URL: `http://localhost:8000/api` (dev) / `https://<backend-domain>/api` (pr
   "description": "Roadmap and milestones review",
   "scheduled_at": "2026-10-02T15:00:00Z",
   "duration_minutes": 45,
-  "host_name": "Dhruv Singh"
+  "host_name": "Rohan"
 }
 ```
 - **Validation**:
@@ -76,7 +76,7 @@ Base URL: `http://localhost:8000/api` (dev) / `https://<backend-domain>/api` (pr
   "meeting_type": "scheduled",
   "scheduled_at": "2026-10-02T15:00:00Z",
   "duration_minutes": 45,
-  "host_name": "Dhruv Singh",
+  "host_name": "Rohan",
   "host_control_token": "c71e9a3b821045f0918ef014a51e6042",
   "invite_url": "http://localhost:3000/join?meeting=4918203719",
   "created_at": "2026-09-29T23:25:00Z"
@@ -92,9 +92,9 @@ Base URL: `http://localhost:8000/api` (dev) / `https://<backend-domain>/api` (pr
 ```json
 {
   "meeting_code": "8231946621",
-  "title": "Dhruv's Meeting",
+  "title": "Rohan's Meeting",
   "description": null,
-  "host_name": "Dhruv Singh",
+  "host_name": "Rohan",
   "status": "live",
   "meeting_type": "instant",
   "scheduled_at": null,
@@ -137,7 +137,7 @@ Base URL: `http://localhost:8000/api` (dev) / `https://<backend-domain>/api` (pr
 ```json
 {
   "meeting_code": "8231946621",
-  "title": "Dhruv's Meeting",
+  "title": "Rohan's Meeting",
   "participant_identity": "part_ayan_83ab1",
   "display_name": "Ayan",
   "role": "participant",
