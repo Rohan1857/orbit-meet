@@ -2,8 +2,31 @@ import datetime
 import pytest
 
 
-def test_create_instant_meeting(client):
-    response = client.post("/api/meetings/instant", json={"host_name": "Rohan"})
+def test_unauthenticated_requests_return_401(client):
+    # Instant meeting requires auth
+    res_instant = client.post("/api/meetings/instant", json={"title": "Unauthorized Instant"})
+    assert res_instant.status_code == 401
+
+    # Scheduling requires auth
+    future = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=2)
+    res_sched = client.post("/api/meetings", json={
+        "title": "Unauthorized Schedule",
+        "scheduled_at": future.isoformat(),
+        "duration_minutes": 30
+    })
+    assert res_sched.status_code == 401
+
+    # Upcoming list requires auth
+    res_upcoming = client.get("/api/meetings?filter=upcoming")
+    assert res_upcoming.status_code == 401
+
+    # Recent list requires auth
+    res_recent = client.get("/api/meetings?filter=recent")
+    assert res_recent.status_code == 401
+
+
+def test_create_instant_meeting(client, auth_headers):
+    response = client.post("/api/meetings/instant", headers=auth_headers, json={"title": "Quick Sync"})
     assert response.status_code == 201
     data = response.json()
     assert len(data["meeting_code"]) == 10
@@ -11,49 +34,51 @@ def test_create_instant_meeting(client):
     assert data["status"] == "live"
     assert data["meeting_type"] == "instant"
     assert data["host_name"] == "Rohan"
+    assert data["owner_user_id"] is not None
     assert "host_control_token" in data
     assert "invite_url" in data
 
 
-def test_schedule_meeting_success(client):
+def test_schedule_meeting_success(client, auth_headers):
     future = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=2)
     payload = {
         "title": "Quarterly Roadmap Review",
         "description": "Discussion on Q4 deliverables",
         "scheduled_at": future.isoformat(),
         "duration_minutes": 60,
-        "host_name": "Rohan"
     }
-    response = client.post("/api/meetings", json=payload)
+    response = client.post("/api/meetings", headers=auth_headers, json=payload)
     assert response.status_code == 201
     data = response.json()
     assert data["title"] == "Quarterly Roadmap Review"
     assert data["status"] == "scheduled"
     assert data["meeting_type"] == "scheduled"
+    assert data["owner_user_id"] is not None
     assert len(data["meeting_code"]) == 10
 
 
-def test_schedule_meeting_rejects_past_date(client):
+def test_schedule_meeting_rejects_past_date(client, auth_headers):
     past = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=1)
     payload = {
         "title": "Past Meeting",
         "scheduled_at": past.isoformat(),
         "duration_minutes": 30
     }
-    response = client.post("/api/meetings", json=payload)
+    response = client.post("/api/meetings", headers=auth_headers, json=payload)
     assert response.status_code == 422
 
 
-def test_get_meeting_by_code(client):
-    create_res = client.post("/api/meetings/instant", json={"title": "Team Sync"})
+def test_get_meeting_by_code(client, auth_headers):
+    create_res = client.post("/api/meetings/instant", headers=auth_headers, json={"title": "Team Sync"})
     meeting_code = create_res.json()["meeting_code"]
 
-    # Query with exact digits
+    # Public/Guest query with exact digits without any auth
     get_res = client.get(f"/api/meetings/{meeting_code}")
     assert get_res.status_code == 200
     assert get_res.json()["meeting_code"] == meeting_code
+    assert get_res.json().get("host_control_token") is None
 
-    # Query with spaces: "XXX XXX XXXX"
+    # Public/Guest query with spaces: "XXX XXX XXXX"
     formatted_code = f"{meeting_code[:3]} {meeting_code[3:6]} {meeting_code[6:]}"
     get_res_spaces = client.get(f"/api/meetings/{formatted_code}")
     assert get_res_spaces.status_code == 200
@@ -65,31 +90,32 @@ def test_get_nonexistent_meeting(client):
     assert response.status_code == 404
 
 
-def test_upcoming_and_recent_filters(client):
+def test_upcoming_and_recent_filters(client, auth_headers):
     # Create 1 upcoming
     future = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=3)
-    client.post("/api/meetings", json={
+    client.post("/api/meetings", headers=auth_headers, json={
         "title": "Upcoming Standup",
         "scheduled_at": future.isoformat(),
         "duration_minutes": 30
     })
 
     # Create 1 instant (live/recent)
-    client.post("/api/meetings/instant", json={"title": "Instant Live"})
+    client.post("/api/meetings/instant", headers=auth_headers, json={"title": "Instant Live"})
 
-    upcoming = client.get("/api/meetings?filter=upcoming").json()
+    upcoming = client.get("/api/meetings?filter=upcoming", headers=auth_headers).json()
     assert len(upcoming) >= 1
     assert all(m["status"] == "scheduled" for m in upcoming)
 
-    recent = client.get("/api/meetings?filter=recent").json()
+    recent = client.get("/api/meetings?filter=recent", headers=auth_headers).json()
     assert len(recent) >= 1
     assert any(m["title"] == "Instant Live" for m in recent)
 
 
-def test_join_meeting_and_token_issuance(client):
-    create_res = client.post("/api/meetings/instant", json={"title": "Design Discussion"})
+def test_join_meeting_and_token_issuance(client, auth_headers):
+    create_res = client.post("/api/meetings/instant", headers=auth_headers, json={"title": "Design Discussion"})
     meeting_code = create_res.json()["meeting_code"]
 
+    # Guest joins without any auth header
     join_res = client.post(
         f"/api/meetings/{meeting_code}/join",
         json={"display_name": "Ayan", "role": "participant"}

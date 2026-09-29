@@ -21,30 +21,21 @@ def verify_host(
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
 
-    # 1. If caller is an authenticated user
-    if current_user:
-        # If meeting has an assigned owner and it is not this user -> reject 403 Forbidden
-        if meeting.owner_user_id is not None and meeting.owner_user_id != current_user.id:
+    # 1. If meeting has an assigned owner, only that owner can moderate
+    if meeting.owner_user_id is not None:
+        if not current_user or meeting.owner_user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Unauthorized: Host control token required for moderation actions"
+                detail="Unauthorized: Only the meeting owner can perform host moderation actions"
             )
-        # If user owns the meeting, authorize immediately
-        if meeting.owner_user_id == current_user.id:
-            return meeting
+        return meeting
 
-    # 2. Check token possession for unauthenticated clients or legacy unowned meetings
-    if not x_host_token:
+    # 2. Legacy unowned meetings fallback
+    if not x_host_token or meeting.host_control_token != x_host_token:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Unauthorized: Host control token required for moderation actions"
         )
-    if meeting.host_control_token != x_host_token:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Unauthorized: Host control token required for moderation actions"
-        )
-
     return meeting
 
 

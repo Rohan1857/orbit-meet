@@ -6,7 +6,7 @@ from app.config import settings
 from app.database import get_db
 from app.models.meeting import Meeting
 from app.models.user import User
-from app.core.auth import get_current_user
+from app.core.auth import get_current_user, require_authenticated_user
 from app.schemas.meeting import (
     InstantMeetingCreate,
     ScheduledMeetingCreate,
@@ -49,12 +49,11 @@ def format_meeting_response(meeting: Meeting, include_token: bool = False) -> di
 @router.post("/instant", response_model=MeetingResponse, status_code=status.HTTP_201_CREATED)
 def create_instant_meeting(
     payload: InstantMeetingCreate = InstantMeetingCreate(),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(require_authenticated_user),
     db: Session = Depends(get_db)
 ):
-    owner_user_id = current_user.id if current_user else None
-    if current_user:
-        payload.host_name = current_user.display_name
+    owner_user_id = current_user.id
+    payload.host_name = current_user.display_name
 
     meeting = MeetingService.create_instant_meeting(db, payload, owner_user_id=owner_user_id)
     return format_meeting_response(meeting, include_token=True)
@@ -63,12 +62,11 @@ def create_instant_meeting(
 @router.post("", response_model=MeetingResponse, status_code=status.HTTP_201_CREATED)
 def create_scheduled_meeting(
     payload: ScheduledMeetingCreate,
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(require_authenticated_user),
     db: Session = Depends(get_db)
 ):
-    owner_user_id = current_user.id if current_user else None
-    if current_user:
-        payload.host_name = current_user.display_name
+    owner_user_id = current_user.id
+    payload.host_name = current_user.display_name
 
     meeting = MeetingService.create_scheduled_meeting(db, payload, owner_user_id=owner_user_id)
     return format_meeting_response(meeting, include_token=True)
@@ -78,19 +76,22 @@ def create_scheduled_meeting(
 def list_meetings(
     filter: Optional[str] = Query(default=None, pattern="^(upcoming|recent)$"),
     limit: int = Query(default=10, ge=1, le=50),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(require_authenticated_user),
     db: Session = Depends(get_db)
 ):
-    owner_id = current_user.id if current_user else None
+    owner_id = current_user.id
     if filter == "upcoming":
         meetings = MeetingService.list_upcoming_meetings(db, owner_user_id=owner_id, limit=limit)
     elif filter == "recent":
         meetings = MeetingService.list_recent_meetings(db, owner_user_id=owner_id, limit=limit)
     else:
-        query = db.query(Meeting)
-        if owner_id is not None:
-            query = query.filter(Meeting.owner_user_id == owner_id)
-        meetings = query.order_by(Meeting.created_at.desc()).limit(limit).all()
+        meetings = (
+            db.query(Meeting)
+            .filter(Meeting.owner_user_id == owner_id)
+            .order_by(Meeting.created_at.desc())
+            .limit(limit)
+            .all()
+        )
     return [format_meeting_response(m) for m in meetings]
 
 
@@ -122,8 +123,11 @@ def join_meeting(
         raise HTTPException(status_code=400, detail="This meeting has already ended")
 
     is_host = False
-    if current_user and meeting.owner_user_id == current_user.id:
-        is_host = True
+    if meeting.owner_user_id is not None:
+        if current_user and meeting.owner_user_id == current_user.id:
+            is_host = True
+        else:
+            payload.role = "participant"
     elif payload.role == "host":
         if x_host_token and x_host_token == meeting.host_control_token:
             is_host = True

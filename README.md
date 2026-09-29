@@ -133,24 +133,36 @@ CREATE TABLE participant_sessions (
 
 All API routes are prefixed under `/api`.
 
-| Method | Endpoint | Description | Auth / Headers | Status Codes |
+> **Access Model**: Authenticated users create, schedule, manage, and host meetings. Invited participants may join valid meetings as guests using a display name without creating an account.
+
+### Authentication Endpoints
+| Method | Endpoint | Description | Authentication | Status Codes |
 |---|---|---|---|---|
-| `GET` | `/api/health` | Service health and database connection status | None | 200 |
-| `POST` | `/api/auth/register` | Register new user with email, password, and display name | None | 201, 400 |
-| `POST` | `/api/auth/login` | Authenticate existing user with email and password | None | 200, 401 |
-| `POST` | `/api/auth/google` | Authenticate or register user via Google GIS ID token | None | 200, 401, 409 |
-| `GET` | `/api/auth/me` | Retrieve profile of authenticated user | `Bearer <token>` | 200, 401 |
-| `POST` | `/api/auth/logout` | Invalidate current session client-side | None | 200 |
-| `POST` | `/api/meetings/instant` | Create instant meeting (attaches authenticated owner if logged in) | Optional `Bearer` | 201 |
-| `POST` | `/api/meetings` | Schedule a future meeting | Optional `Bearer` | 201, 422 |
-| `GET` | `/api/meetings/{code}` | Retrieve meeting metadata (sanitizes host token for non-owners) | Optional `Bearer` | 200, 404 |
-| `GET` | `/api/meetings?filter=upcoming` | List upcoming meetings (scoped to authenticated user) | Optional `Bearer` | 200 |
-| `GET` | `/api/meetings?filter=recent` | List recent meetings (scoped to authenticated user) | Optional `Bearer` | 200 |
-| `POST` | `/api/meetings/{code}/join` | Join meeting and issue signed LiveKit JWT (open to guests) | Optional `Bearer` | 200, 404, 400 |
-| `POST` | `/api/meetings/{code}/end` | End meeting for all attendees (owner or host token required) | `Bearer` / `x-host-token` | 200, 403, 404 |
-| `DELETE` | `/api/meetings/{code}/participants/{id}` | Kick attendee from LiveKit room & database | `Bearer` / `x-host-token` | 200, 403, 404 |
-| `POST` | `/api/meetings/{code}/participants/{id}/mute` | Mute specific participant audio track | `Bearer` / `x-host-token` | 200, 403, 404 |
-| `POST` | `/api/meetings/{code}/mute-all` | Mute all non-host attendees | `Bearer` / `x-host-token` | 200, 403, 404 |
+| `POST` | `/api/auth/register` | Register new user with email, password, display name | Public | 201, 400 |
+| `POST` | `/api/auth/login` | Authenticate with email and password | Public | 200, 401 |
+| `POST` | `/api/auth/google` | Authenticate via Google Identity Services ID token | Public | 200, 401, 409 |
+| `GET` | `/api/auth/me` | Retrieve profile of current user | `Bearer <token>` (Required) | 200, 401 |
+| `POST` | `/api/auth/logout` | Client-side session invalidation | Public | 200 |
+
+### Protected Host & Dashboard Endpoints
+| Method | Endpoint | Description | Authentication | Status Codes |
+|---|---|---|---|---|
+| `POST` | `/api/meetings/instant` | Create instant meeting assigned to authenticated user | `Bearer <token>` (Required) | 201, 401 |
+| `POST` | `/api/meetings` | Schedule future meeting assigned to authenticated user | `Bearer <token>` (Required) | 201, 401, 422 |
+| `GET` | `/api/meetings?filter=upcoming` | List upcoming meetings for authenticated user | `Bearer <token>` (Required) | 200, 401 |
+| `GET` | `/api/meetings?filter=recent` | List recent meetings for authenticated user | `Bearer <token>` (Required) | 200, 401 |
+| `POST` | `/api/meetings/{code}/end` | End meeting for all attendees | `Bearer <token>` (Owner Required) | 200, 403, 404 |
+| `DELETE` | `/api/meetings/{code}/participants/{id}` | Kick attendee from LiveKit room & database | `Bearer <token>` (Owner Required) | 200, 403, 404 |
+| `POST` | `/api/meetings/{code}/participants/{id}/mute` | Mute specific participant audio track | `Bearer <token>` (Owner Required) | 200, 403, 404 |
+| `POST` | `/api/meetings/{code}/mute-all` | Mute all non-host attendees | `Bearer <token>` (Owner Required) | 200, 403, 404 |
+
+### Public Guest & Lookup Endpoints
+| Method | Endpoint | Description | Authentication | Status Codes |
+|---|---|---|---|---|
+| `GET` | `/api/health` | Service health and database status | Public | 200 |
+| `GET` | `/api/meetings/{code}` | Retrieve meeting join metadata (omits host secret token) | Public | 200, 404 |
+| `POST` | `/api/meetings/{code}/join` | Join meeting and issue signed LiveKit JWT | Public (Guest Safe) | 200, 400, 404 |
+| `POST` | `/api/meetings/{code}/leave` | Record participant departure | Public | 200 |
 
 ---
 
