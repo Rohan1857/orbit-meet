@@ -5,6 +5,16 @@ Designed from the ground up to provide a human-authored, responsive conferencing
 
 ---
 
+## Live Production URLs
+
+- **Frontend (Vercel)**: [https://orbitmeet-nu.vercel.app](https://orbitmeet-nu.vercel.app)
+- **Backend API (Railway)**: [https://orbitmeet-backend-production.up.railway.app](https://orbitmeet-backend-production.up.railway.app)
+- **Backend Health Check**: [https://orbitmeet-backend-production.up.railway.app/api/health](https://orbitmeet-backend-production.up.railway.app/api/health)
+- **Realtime Media SFU**: `wss://fh-e25mx63h.livekit.cloud`
+- **GitHub Repository**: [https://github.com/Rohan1857/orbit-meet](https://github.com/Rohan1857/orbit-meet)
+
+---
+
 ## Architecture Overview
 
 ```
