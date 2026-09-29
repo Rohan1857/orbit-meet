@@ -37,17 +37,22 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
   const handleMuteAll = async () => {
     if (!hostToken) return;
     try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api"}/meetings/${meetingCode}/mute-all`,
-        {
-          method: "POST",
-          headers: { "x-host-token": hostToken },
-        }
-      );
-      setStatusMessage("Requested mute-all for attendees.");
+      await api.muteAll(meetingCode, hostToken);
+      setStatusMessage("Muted all attendees.");
       setTimeout(() => setStatusMessage(null), 3000);
     } catch {
       setStatusMessage("Failed to execute mute-all.");
+    }
+  };
+
+  const handleMuteParticipant = async (participant: Participant) => {
+    if (!hostToken || participant.isLocal) return;
+    try {
+      await api.muteParticipant(meetingCode, participant.identity, hostToken);
+      setStatusMessage(`Muted ${participant.name || "participant"}.`);
+      setTimeout(() => setStatusMessage(null), 3000);
+    } catch {
+      setStatusMessage(`Failed to mute ${participant.name || "participant"}.`);
     }
   };
 
@@ -143,14 +148,26 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
 
                 {/* Host Moderation Controls */}
                 {isHost && !participant.isLocal && (
-                  <button
-                    onClick={() => handleRemove(participant)}
-                    className="rounded-sm p-1 text-[#f87171] hover:bg-[#321e20] transition-colors ml-1"
-                    title={`Remove ${name}`}
-                    aria-label={`Remove ${name}`}
-                  >
-                    <UserX className="h-3.5 w-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1 ml-1 border-l border-[#262830] pl-1.5">
+                    {participant.isMicrophoneEnabled && (
+                      <button
+                        onClick={() => handleMuteParticipant(participant)}
+                        className="rounded p-1 text-[#a0a6b5] hover:text-[#f87171] hover:bg-[#252830] transition-colors"
+                        title={`Mute ${name}`}
+                        aria-label={`Mute ${name}`}
+                      >
+                        <VolumeX className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleRemove(participant)}
+                      className="rounded p-1 text-[#a0a6b5] hover:text-[#f87171] hover:bg-[#321e20] transition-colors"
+                      title={`Remove ${name}`}
+                      aria-label={`Remove ${name}`}
+                    >
+                      <UserX className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

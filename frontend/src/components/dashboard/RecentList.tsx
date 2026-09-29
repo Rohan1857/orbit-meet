@@ -28,11 +28,14 @@ export const RecentList: React.FC<RecentListProps> = ({ meetings, isLoading }) =
         {[1, 2].map((i) => (
           <div
             key={i}
-            className="animate-pulse rounded-lg border border-border bg-surface p-4 flex items-center justify-between"
+            className="animate-pulse rounded-xl border border-border bg-surface p-4 flex items-center justify-between"
           >
-            <div className="space-y-2">
-              <div className="h-4 w-40 rounded bg-border-subtle" />
-              <div className="h-3 w-28 rounded bg-border-subtle" />
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-border-subtle" />
+              <div className="space-y-2">
+                <div className="h-4 w-40 rounded bg-border-subtle" />
+                <div className="h-3 w-28 rounded bg-border-subtle" />
+              </div>
             </div>
             <div className="h-8 w-16 rounded bg-border-subtle" />
           </div>
@@ -43,11 +46,13 @@ export const RecentList: React.FC<RecentListProps> = ({ meetings, isLoading }) =
 
   if (meetings.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-border bg-surface/50 p-8 text-center">
-        <History className="mx-auto h-8 w-8 text-text-muted mb-2 stroke-[1.5]" />
+      <div className="rounded-xl border border-dashed border-border bg-surface/50 p-8 text-center space-y-2">
+        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-surface-muted text-text-muted border border-border-subtle">
+          <History className="h-5 w-5" />
+        </div>
         <h4 className="text-sm font-semibold text-text-primary">No recent meetings</h4>
-        <p className="mt-1 text-xs text-text-secondary max-w-sm mx-auto">
-          Completed and past sessions will be catalogued here for review.
+        <p className="mt-1 text-xs text-text-secondary max-w-xs mx-auto">
+          Completed sessions and past conferences will be catalogued here for reference.
         </p>
       </div>
     );
@@ -58,21 +63,32 @@ export const RecentList: React.FC<RecentListProps> = ({ meetings, isLoading }) =
       {meetings.map((meeting) => (
         <div
           key={meeting.id}
-          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-lg border border-border bg-surface p-4 transition-all hover:border-border-subtle hover:shadow-sm"
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-border bg-surface p-4 transition-all hover:border-[#cbd5e1] hover:shadow-xs"
         >
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h4 className="text-sm font-semibold text-text-primary">{meeting.title}</h4>
-              <Badge variant={meeting.status === "live" ? "live" : "ended"}>
-                {meeting.status === "live" ? "Live Now" : "Ended"}
-              </Badge>
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Archive History Icon */}
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border-subtle bg-surface-muted shrink-0 text-text-secondary">
+              <History className="h-5 w-5" />
             </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-secondary">
-              <span>{formatScheduleDisplay(meeting.ended_at || meeting.started_at || meeting.created_at)}</span>
-              <span>•</span>
-              <span className="font-mono text-text-muted">
-                ID: {formatMeetingCode(meeting.meeting_code)}
-              </span>
+
+            <div className="space-y-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-semibold text-text-primary truncate">
+                  {meeting.title}
+                </h4>
+                <Badge variant={meeting.status === "live" ? "live" : "ended"} className="shrink-0">
+                  {meeting.status === "live" ? "Live Now" : "Ended"}
+                </Badge>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-text-secondary">
+                <span>
+                  {formatScheduleDisplay(meeting.ended_at || meeting.started_at || meeting.created_at)}
+                </span>
+                <span>•</span>
+                <span className="font-mono text-text-muted">
+                  ID: {formatMeetingCode(meeting.meeting_code)}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -97,8 +113,8 @@ export const RecentList: React.FC<RecentListProps> = ({ meetings, isLoading }) =
               )}
             </Button>
             <Link href={`/meeting/${meeting.meeting_code}`}>
-              <Button variant="secondary" size="sm" className="gap-1.5 text-xs">
-                <RotateCw className="h-3.5 w-3.5" />
+              <Button variant="secondary" size="sm" className="gap-1.5 text-xs shadow-xs">
+                <RotateCw className="h-3.5 w-3.5 text-text-secondary" />
                 <span>Re-join</span>
               </Button>
             </Link>

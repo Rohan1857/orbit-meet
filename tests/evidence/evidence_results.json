@@ -6,23 +6,23 @@
     },
     "host_registration_and_login": {
       "passed": true,
-      "details": "Host registered and logged in as host_e2e_1790713566@orbitmeet.test"
+      "details": "Host registered and logged in as host_e2e_1790715133@orbitmeet.test"
     },
     "create_instant_meeting": {
       "passed": true,
-      "details": "Code: 6386484545"
+      "details": "Code: 8167199488"
     },
     "host_livekit_connection": {
       "passed": true,
-      "details": "Host connected to room 6386484545"
+      "details": "Host connected to room 8167199488"
     },
     "guest_join_no_login_redirect": {
       "passed": true,
-      "details": "Guest stayed on https://orbitmeet-nu.vercel.app/join?meeting=6386484545 without auth redirect"
+      "details": "Guest stayed on https://orbitmeet-nu.vercel.app/join?meeting=8167199488 without auth redirect"
     },
     "participant_livekit_connection": {
       "passed": true,
-      "details": "Alice connected to room 6386484545"
+      "details": "Alice connected to room 8167199488"
     },
     "host_sees_alice_videotile": {
       "passed": true,
@@ -64,6 +64,10 @@
       "passed": true,
       "details": "Mute All Attendees API dispatched successfully"
     },
+    "alice_audio_track_muted_by_host": {
+      "passed": true,
+      "details": "Alice audio track confirmed muted following host Mute All"
+    },
     "non_host_moderation_prevented": {
       "passed": true,
       "details": "Participant Mute-All visible: False, Kick visible: False"
@@ -88,24 +92,23 @@
       "passed": true,
       "details": "Host ended meeting for all and returned to dashboard"
     },
-    "console_network_health": {
+    "unexpected_error_count_zero": {
       "passed": true,
-      "details": "Host: 3 logs, Part: 2 logs"
+      "details": "Critical exceptions: 0, Unexpected network failures: 0"
     }
   },
   "console_logs_host": [
     "[error] Failed to load resource: the server responded with a status of 404 ()",
-    "[error] Failed to load resource: the server responded with a status of 404 ()",
-    "[error] Failed to load resource: the server responded with a status of 403 ()"
+    "[error] Failed to load resource: the server responded with a status of 404 ()"
   ],
   "console_logs_participant": [
     "[error] Failed to load resource: the server responded with a status of 404 ()",
     "[error] Failed to load resource: the server responded with a status of 404 ()"
   ],
   "network_errors_host": [
-    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_567008_509315&cas=KRJ3%2B68GcYwEeK7bYAmPvcJ7vztcgB18XXCJxJ2mync - net::ERR_ABORTED",
-    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_567023_139780&cas=IJ7SNc%2Fz3lWPBR7TJlgWai5xHEf%2BnbjTydfC5TKH%2FWA - net::ERR_ABORTED",
-    "GET https://orbitmeet-nu.vercel.app/meeting/6386484545?_rsc=ZmCQ44b92m4mXe_R - net::ERR_ABORTED"
+    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_133930_184965&cas=q3EVamXXurbjg2Cqyudc2w54Zf87fTZ57uWf2grJgJg - net::ERR_ABORTED",
+    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_133943_270301&cas=CEUUEWK3g9u8Wcsw1Vj%2FEMCQbURba7GnzVzi6kFLstQ - net::ERR_ABORTED",
+    "GET https://orbitmeet-nu.vercel.app/meeting/8167199488?_rsc=ZmCQ44b92m4mXe_R - net::ERR_ABORTED"
   ],
   "network_errors_participant": []
 }

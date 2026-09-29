@@ -226,6 +226,18 @@ class ApiClient {
       }
     );
   }
+
+  async muteAll(code: string, hostToken: string): Promise<void> {
+    await this.request<{ status: string }>(
+      `/meetings/${encodeURIComponent(code)}/mute-all`,
+      {
+        method: "POST",
+        headers: {
+          "x-host-token": hostToken,
+        },
+      }
+    );
+  }
 }
 
 export const api = new ApiClient();
