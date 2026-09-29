@@ -1,0 +1,100 @@
+{
+  "step_results": {
+    "backend_health": {
+      "passed": true,
+      "details": "Status: 200, Database: connected"
+    },
+    "create_instant_meeting": {
+      "passed": true,
+      "details": "Code: 3744510674"
+    },
+    "host_livekit_connection": {
+      "passed": true,
+      "details": "Host connected to room 3744510674"
+    },
+    "participant_livekit_connection": {
+      "passed": true,
+      "details": "Alice connected to room 3744510674"
+    },
+    "host_sees_alice_videotile": {
+      "passed": true,
+      "details": "Alice video tile present in Host stage"
+    },
+    "host_sees_both_in_panel": {
+      "passed": true,
+      "details": "Alice: True, Dhruv: True"
+    },
+    "participant_sees_dhruv_videotile": {
+      "passed": true,
+      "details": "Dhruv video tile present in Alice stage"
+    },
+    "participant_sees_both_in_panel": {
+      "passed": true,
+      "details": "Dhruv: True, Alice: True"
+    },
+    "host_mute_toggle": {
+      "passed": true,
+      "details": "Host mic toggled to Unmute"
+    },
+    "host_unmute_toggle": {
+      "passed": true,
+      "details": "Host mic restored to Mute"
+    },
+    "host_stop_video": {
+      "passed": true,
+      "details": "Host video stopped (avatar fallback active)"
+    },
+    "host_start_video": {
+      "passed": true,
+      "details": "Host video restored"
+    },
+    "screenshare_control_exercised": {
+      "passed": true,
+      "details": "Screen share action triggered without crash"
+    },
+    "host_mute_all": {
+      "passed": true,
+      "details": "Mute All Attendees API dispatched successfully"
+    },
+    "non_host_moderation_prevented": {
+      "passed": true,
+      "details": "Participant Mute-All visible: False, Kick visible: False"
+    },
+    "non_host_api_rejected": {
+      "passed": true,
+      "details": "Backend rejected unauthenticated host request with 403/422"
+    },
+    "host_remove_participant": {
+      "passed": true,
+      "details": "Removed Alice Evaluator via host moderation"
+    },
+    "participant_rejoin": {
+      "passed": true,
+      "details": "Participant successfully rejoined after kick"
+    },
+    "participant_normal_leave": {
+      "passed": true,
+      "details": "Participant left meeting and returned to dashboard"
+    },
+    "host_end_meeting_for_all": {
+      "passed": true,
+      "details": "Host ended meeting for all and returned to dashboard"
+    },
+    "console_network_health": {
+      "passed": true,
+      "details": "Host: 2 logs, Part: 2 logs"
+    }
+  },
+  "console_logs_host": [
+    "[error] Failed to load resource: the server responded with a status of 404 ()",
+    "[error] Failed to load resource: the server responded with a status of 404 ()"
+  ],
+  "console_logs_participant": [
+    "[error] Failed to load resource: the server responded with a status of 404 ()",
+    "[error] Failed to load resource: the server responded with a status of 404 ()"
+  ],
+  "network_errors_host": [
+    "GET https://orbitmeet-nu.vercel.app/meeting/3744510674?_rsc=ZmCQ44b92m4mXe_R - net::ERR_ABORTED"
+  ],
+  "network_errors_participant": []
+}
