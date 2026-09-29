@@ -24,16 +24,22 @@ def log_step(name, status, details=""):
 
 def verify_backend_health():
     print("\n--- 1. Verify Backend Health ---")
-    try:
-        req = urllib.request.Request(BACKEND_HEALTH_URL, headers={"User-Agent": "E2ETester/1.0"})
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode())
-            status = resp.status == 200 and data.get("database") == "connected"
-            log_step("backend_health", status, f"Status: {resp.status}, Database: {data.get('database')}")
-            return status
-    except Exception as e:
-        log_step("backend_health", False, str(e))
-        return False
+    for attempt in range(1, 4):
+        try:
+            req = urllib.request.Request(BACKEND_HEALTH_URL, headers={"User-Agent": "E2ETester/1.0"})
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode())
+                status = resp.status == 200 and data.get("database") == "connected"
+                if status:
+                    log_step("backend_health", True, f"Status: {resp.status}, Database: {data.get('database')}")
+                    return True
+        except Exception as e:
+            if attempt < 3:
+                time.sleep(3)
+            else:
+                log_step("backend_health", False, str(e))
+                return False
+    return False
 
 def run_test():
     if not verify_backend_health():

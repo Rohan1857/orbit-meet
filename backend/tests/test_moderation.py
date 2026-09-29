@@ -53,3 +53,51 @@ def test_host_remove_participant(client):
     )
     assert kick_res.status_code == 200
     assert kick_res.json()["status"] == "removed"
+
+
+def test_participant_forged_host_token_rejected(client):
+    """
+    A participant sends a host-only moderation request using a deliberately
+    incorrect/forged host_control_token.
+    Expected result: 403 Forbidden on all host-only endpoints.
+    """
+    create_res = client.post("/api/meetings/instant", json={"title": "Security Audit Session"})
+    meeting_code = create_res.json()["meeting_code"]
+
+    # Participant joins
+    join_res = client.post(
+        f"/api/meetings/{meeting_code}/join",
+        json={"display_name": "Eve Malicious", "role": "participant"}
+    )
+    participant_identity = join_res.json()["participant_identity"]
+
+    forged_tokens = [
+        "forged_token_hex_99999999999999999999",
+        "attacker-controlled-token",
+        "00000000000000000000000000000000",
+    ]
+
+    for token in forged_tokens:
+        # 1. Attempt Mute-All with forged token
+        mute_res = client.post(
+            f"/api/meetings/{meeting_code}/mute-all",
+            headers={"x-host-token": token}
+        )
+        assert mute_res.status_code == 403
+        assert mute_res.json()["detail"] == "Unauthorized: Host control token required for moderation actions"
+
+        # 2. Attempt Remove Participant with forged token
+        remove_res = client.delete(
+            f"/api/meetings/{meeting_code}/participants/{participant_identity}",
+            headers={"x-host-token": token}
+        )
+        assert remove_res.status_code == 403
+        assert remove_res.json()["detail"] == "Unauthorized: Host control token required for moderation actions"
+
+        # 3. Attempt End Meeting with forged token
+        end_res = client.post(
+            f"/api/meetings/{meeting_code}/end",
+            headers={"x-host-token": token}
+        )
+        assert end_res.status_code == 403
+        assert end_res.json()["detail"] == "Unauthorized: Host control token required for moderation actions"

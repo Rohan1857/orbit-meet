@@ -61,8 +61,8 @@ def seed_database():
             # Recent Meeting 2
             Meeting(
                 meeting_code="3829104720",
-                title="Research Check-in: Agent Architecture",
-                description="Discussion on autonomous task decomposition and evaluation benchmarks.",
+                title="Sprint Review & Retrospective",
+                description="Team retrospective on sprint milestones and performance optimizations.",
                 host_name="Rohan",
                 meeting_type="scheduled",
                 status="ended",
