@@ -22,6 +22,7 @@ import {
   Minimize,
   Keyboard,
   CheckCheck,
+  Lock,
 } from "lucide-react";
 import { useLocalParticipant, useParticipants, useRoomContext } from "@livekit/components-react";
 import { Button } from "@/components/ui/Button";
@@ -45,6 +46,7 @@ interface MeetingToolbarProps {
   onLeaveClick: () => void;
   onEndMeetingForAll: () => void;
   onMeetingUpdated: (updated: Partial<Meeting>) => void;
+  onBroadcastPermissions?: (payload: any) => void;
 }
 
 const REACTION_EMOJIS = ["👍", "👏", "❤️", "😂", "🎉"];
@@ -64,10 +66,24 @@ export const MeetingToolbar: React.FC<MeetingToolbarProps> = ({
   onLeaveClick,
   onEndMeetingForAll,
   onMeetingUpdated,
-}) => {
+  onBroadcastPermissions,
+}: MeetingToolbarProps) => {
   const room = useRoomContext();
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
+
+  // Instant enforcement: if host disables unmute or screenshare, mute immediately
+  useEffect(() => {
+    if (!isHost && meeting.allow_participant_unmute === false && localParticipant?.isMicrophoneEnabled) {
+      localParticipant.setMicrophoneEnabled(false);
+    }
+  }, [isHost, meeting.allow_participant_unmute, localParticipant]);
+
+  useEffect(() => {
+    if (!isHost && meeting.allow_participant_screen_share === false && localParticipant?.isScreenShareEnabled) {
+      localParticipant.setScreenShareEnabled(false);
+    }
+  }, [isHost, meeting.allow_participant_screen_share, localParticipant]);
 
   // Dialog and Popover States
   const [isInfoOpen, setIsInfoOpen] = useState(false);
@@ -230,17 +246,19 @@ export const MeetingToolbar: React.FC<MeetingToolbarProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const isAudioUnmuteBlocked = !isHost && meeting.allow_participant_unmute === false;
+
   return (
     <>
       <footer
         ref={menuRef}
-        className="relative h-18 w-full border-t border-[#262830] bg-[#16171b] px-3 sm:px-6 flex items-center justify-between select-none shrink-0 z-30"
+        className="relative h-18 w-full border-t border-[#262830] bg-[#16171b] px-2 sm:px-6 flex items-center justify-between select-none shrink-0 z-30 gap-1 sm:gap-2"
       >
         {/* Left Section: Meeting Info Quick Access */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           <button
             onClick={() => setIsInfoOpen(true)}
-            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs text-[#a0a6b5] hover:bg-[#252830] hover:text-white transition-colors"
+            className="flex items-center gap-1.5 rounded-md px-2 sm:px-2.5 py-1.5 text-xs text-[#a0a6b5] hover:bg-[#252830] hover:text-white transition-colors"
             title="Meeting Information"
             aria-label="Meeting Information"
           >
@@ -250,26 +268,39 @@ export const MeetingToolbar: React.FC<MeetingToolbarProps> = ({
         </div>
 
         {/* Center: Controls Bar */}
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar py-1 max-w-[calc(100vw-110px)] sm:max-w-none">
           {/* 1. Microphone Toggle + Device Selector */}
-          <div className="relative flex items-center">
+          <div className="relative flex items-center shrink-0">
             <button
               onClick={toggleAudio}
-              className={`flex flex-col items-center justify-center w-12 sm:w-14 h-12 rounded-l-md transition-colors ${
-                isAudioEnabled
+              className={`flex flex-col items-center justify-center w-12 sm:w-14 h-12 rounded-l-md transition-colors relative ${
+                isAudioUnmuteBlocked && !isAudioEnabled
+                  ? "text-[#64748b] bg-[#1a1c22] cursor-not-allowed opacity-80"
+                  : isAudioEnabled
                   ? "text-white hover:bg-[#252830]"
                   : "text-[#f87171] hover:bg-[#252830]"
               }`}
-              title={isAudioEnabled ? "Mute Microphone (Alt+A)" : "Unmute Microphone (Alt+A)"}
+              title={
+                isAudioUnmuteBlocked && !isAudioEnabled
+                  ? "Host has disabled unmuting"
+                  : isAudioEnabled
+                  ? "Mute Microphone (Alt+A)"
+                  : "Unmute Microphone (Alt+A)"
+              }
               aria-label={isAudioEnabled ? "Mute Microphone" : "Unmute Microphone"}
             >
-              {isAudioEnabled ? (
+              {isAudioUnmuteBlocked && !isAudioEnabled ? (
+                <div className="relative">
+                  <MicOff className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-[#94a3b8]" />
+                  <Lock className="absolute -bottom-1 -right-1 h-2.5 w-2.5 text-[#f87171]" />
+                </div>
+              ) : isAudioEnabled ? (
                 <Mic className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
               ) : (
                 <MicOff className="h-4.5 w-4.5 sm:h-5 sm:w-5 text-[#f87171]" />
               )}
               <span className="text-[10px] sm:text-[11px] mt-0.5 font-medium">
-                {isAudioEnabled ? "Mute" : "Unmute"}
+                {isAudioUnmuteBlocked && !isAudioEnabled ? "Locked" : isAudioEnabled ? "Mute" : "Unmute"}
               </span>
             </button>
             <button
@@ -582,13 +613,13 @@ export const MeetingToolbar: React.FC<MeetingToolbarProps> = ({
           </div>
         </div>
 
-        {/* Right Section: Leave / End Meeting */}
-        <div className="flex items-center gap-2">
+        {/* Right Section: Leave / End Meeting (permanently pinned on right) */}
+        <div className="flex items-center gap-2 shrink-0 z-10">
           <Button
             variant="danger"
             size="sm"
             onClick={onLeaveClick}
-            className="gap-1.5 font-semibold text-xs px-3 sm:px-4"
+            className="gap-1 sm:gap-1.5 font-semibold text-xs px-2.5 sm:px-4 shrink-0"
           >
             <PhoneOff className="h-3.5 w-3.5" />
             <span>Leave</span>
@@ -682,6 +713,7 @@ export const MeetingToolbar: React.FC<MeetingToolbarProps> = ({
           hostToken={hostToken}
           onMeetingUpdated={onMeetingUpdated}
           onEndMeetingForAll={onEndMeetingForAll}
+          onBroadcastPermissions={onBroadcastPermissions}
         />
       )}
     </>

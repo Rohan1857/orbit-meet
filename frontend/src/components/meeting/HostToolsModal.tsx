@@ -14,6 +14,7 @@ interface HostToolsModalProps {
   hostToken: string | null;
   onMeetingUpdated: (updated: Partial<Meeting>) => void;
   onEndMeetingForAll: () => void;
+  onBroadcastPermissions?: (payload: any) => void;
 }
 
 export const HostToolsModal: React.FC<HostToolsModalProps> = ({
@@ -23,6 +24,7 @@ export const HostToolsModal: React.FC<HostToolsModalProps> = ({
   hostToken,
   onMeetingUpdated,
   onEndMeetingForAll,
+  onBroadcastPermissions,
 }) => {
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
@@ -40,10 +42,12 @@ export const HostToolsModal: React.FC<HostToolsModalProps> = ({
       if (meeting.is_locked) {
         await api.unlockMeeting(meeting.meeting_code, hostToken);
         onMeetingUpdated({ is_locked: false });
+        onBroadcastPermissions?.({ is_locked: false });
         showStatus("Meeting unlocked. Guests can now join.");
       } else {
         await api.lockMeeting(meeting.meeting_code, hostToken);
         onMeetingUpdated({ is_locked: true });
+        onBroadcastPermissions?.({ is_locked: true });
         showStatus("Meeting locked. New guests cannot join.");
       }
     } catch {
@@ -69,13 +73,22 @@ export const HostToolsModal: React.FC<HostToolsModalProps> = ({
     setLoadingAction("permUnmute");
     const nextVal = !meeting.allow_participant_unmute;
     try {
+      if (!nextVal) {
+        // Instant enforcement: Server mutes all connected participants on LiveKit SFU
+        try {
+          await api.muteAll(meeting.meeting_code, hostToken || "");
+        } catch (e) {
+          console.warn("Auto mute on perm toggle error:", e);
+        }
+      }
       await api.updateMeetingPermissions(
         meeting.meeting_code,
         { allow_participant_unmute: nextVal },
         hostToken
       );
       onMeetingUpdated({ allow_participant_unmute: nextVal });
-      showStatus(nextVal ? "Attendees can unmute themselves." : "Attendees cannot unmute themselves.");
+      onBroadcastPermissions?.({ allow_participant_unmute: nextVal });
+      showStatus(nextVal ? "Attendees can unmute themselves." : "Muted all attendees and locked unmuting.");
     } catch {
       showStatus("Failed to update unmute permission.");
     } finally {
@@ -93,6 +106,7 @@ export const HostToolsModal: React.FC<HostToolsModalProps> = ({
         hostToken
       );
       onMeetingUpdated({ allow_participant_screen_share: nextVal });
+      onBroadcastPermissions?.({ allow_participant_screen_share: nextVal });
       showStatus(nextVal ? "Attendees can share their screen." : "Attendees cannot share screen.");
     } catch {
       showStatus("Failed to update screen share permission.");

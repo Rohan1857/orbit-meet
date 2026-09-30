@@ -12,7 +12,7 @@ class ScheduledMeetingCreate(BaseModel):
     title: str = Field(..., min_length=2, max_length=255)
     description: Optional[str] = Field(default=None, max_length=2000)
     scheduled_at: datetime.datetime
-    duration_minutes: Optional[int] = Field(default=45, ge=15, le=480)
+    duration_minutes: Optional[int] = Field(default=45, ge=2, le=90)
     host_name: Optional[str] = Field(default="Rohan", max_length=100)
 
     @field_validator("scheduled_at")

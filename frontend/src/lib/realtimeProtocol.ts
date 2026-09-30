@@ -7,6 +7,9 @@ export interface ChatMessagePayload {
   senderName: string;
   text: string;
   timestamp: number;
+  recipientIdentity?: string; // "everyone" or specific participant identity
+  recipientName?: string;
+  isDirect?: boolean;
 }
 
 export interface ReactionPayload {
@@ -27,11 +30,18 @@ export interface SystemMessagePayload {
   timestamp: number;
 }
 
+export interface PermissionsUpdatePayload {
+  allow_participant_unmute?: boolean;
+  allow_participant_screen_share?: boolean;
+  is_locked?: boolean;
+}
+
 export type RealtimeEvent =
   | { type: "chat.message"; version: 1; payload: ChatMessagePayload }
   | { type: "reaction"; version: 1; payload: ReactionPayload }
   | { type: "hand.state"; version: 1; payload: HandStatePayload }
-  | { type: "system"; version: 1; payload: SystemMessagePayload };
+  | { type: "system"; version: 1; payload: SystemMessagePayload }
+  | { type: "permissions.updated"; version: 1; payload: PermissionsUpdatePayload };
 
 export function encodeRealtimeEvent(event: RealtimeEvent): Uint8Array {
   const json = JSON.stringify(event);
@@ -66,6 +76,9 @@ export function decodeRealtimeEvent(data: Uint8Array): RealtimeEvent | null {
             senderName: p.senderName.slice(0, 100),
             text: p.text.trim().slice(0, 2000),
             timestamp: typeof p.timestamp === "number" ? p.timestamp : Date.now(),
+            recipientIdentity: typeof p.recipientIdentity === "string" ? p.recipientIdentity : "everyone",
+            recipientName: typeof p.recipientName === "string" ? p.recipientName.slice(0, 100) : undefined,
+            isDirect: Boolean(p.isDirect),
           },
         };
       }
@@ -120,6 +133,21 @@ export function decodeRealtimeEvent(data: Uint8Array): RealtimeEvent | null {
       }
     }
 
+    if (parsed.type === "permissions.updated") {
+      const p = parsed.payload;
+      if (p && typeof p === "object") {
+        return {
+          type: "permissions.updated",
+          version: 1,
+          payload: {
+            allow_participant_unmute: typeof p.allow_participant_unmute === "boolean" ? p.allow_participant_unmute : undefined,
+            allow_participant_screen_share: typeof p.allow_participant_screen_share === "boolean" ? p.allow_participant_screen_share : undefined,
+            is_locked: typeof p.is_locked === "boolean" ? p.is_locked : undefined,
+          },
+        };
+      }
+    }
+
     return null;
   } catch {
     return null;
@@ -128,7 +156,14 @@ export function decodeRealtimeEvent(data: Uint8Array): RealtimeEvent | null {
 
 export const decodeRealtimeMessage = decodeRealtimeEvent;
 
-export function encodeChatMessage(senderIdentity: string, senderName: string, text: string): Uint8Array {
+export function encodeChatMessage(
+  senderIdentity: string,
+  senderName: string,
+  text: string,
+  recipientIdentity: string = "everyone",
+  recipientName?: string
+): Uint8Array {
+  const isDirect = recipientIdentity !== "everyone" && !!recipientIdentity;
   return encodeRealtimeEvent({
     type: "chat.message",
     version: 1,
@@ -138,7 +173,18 @@ export function encodeChatMessage(senderIdentity: string, senderName: string, te
       senderName,
       text,
       timestamp: Date.now(),
+      recipientIdentity,
+      recipientName,
+      isDirect,
     },
+  });
+}
+
+export function encodePermissionsUpdate(payload: PermissionsUpdatePayload): Uint8Array {
+  return encodeRealtimeEvent({
+    type: "permissions.updated",
+    version: 1,
+    payload,
   });
 }
 

@@ -8,10 +8,11 @@ import {
   StartAudio,
   useRoomContext,
   useLocalParticipant,
+  useParticipants,
   useTracks,
 } from "@livekit/components-react";
 import { RoomEvent, RemoteParticipant, DataPacket_Kind, Track } from "livekit-client";
-import { AlertCircle, ArrowLeft, ShieldCheck, Clock } from "lucide-react";
+import { AlertCircle, ArrowLeft, ShieldCheck, Clock, Link2, Check } from "lucide-react";
 import { api } from "@/lib/api";
 import { Meeting } from "@/types";
 import { PreJoin } from "@/components/meeting/PreJoin";
@@ -29,6 +30,7 @@ import {
   encodeReaction,
   encodeHandState,
   encodeSystemNotice,
+  encodePermissionsUpdate,
   AllowedReaction,
 } from "@/lib/realtimeProtocol";
 
@@ -56,6 +58,7 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
 }) => {
   const room = useRoomContext();
   const { localParticipant } = useLocalParticipant();
+  const participants = useParticipants();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -83,6 +86,16 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
 
   // Elapsed Timer
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const handleQuickShare = () => {
+    const inviteUrl =
+      meeting.invite_url ||
+      `${window.location.origin}/join?meeting=${meeting.meeting_code}`;
+    navigator.clipboard.writeText(inviteUrl);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -121,7 +134,15 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
           };
           setChatItems((prev) => [...prev, newItem]);
           if (!isChatOpen) {
-            setUnreadChatCount((prev) => prev + 1);
+            const myId = localParticipant?.identity || participantIdentity;
+            const isRelevant =
+              !msg.payload.isDirect ||
+              !msg.payload.recipientIdentity ||
+              msg.payload.recipientIdentity === "everyone" ||
+              msg.payload.recipientIdentity === myId;
+            if (isRelevant) {
+              setUnreadChatCount((prev) => prev + 1);
+            }
           }
           break;
         }
@@ -158,6 +179,22 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
             data: msg.payload,
           };
           setChatItems((prev) => [...prev, sysItem]);
+          break;
+        }
+
+        case "permissions.updated": {
+          const perms = msg.payload;
+          onMeetingUpdated(perms);
+          if (perms.allow_participant_unmute === false && !isHost) {
+            if (localParticipant?.isMicrophoneEnabled) {
+              localParticipant.setMicrophoneEnabled(false);
+            }
+          }
+          if (perms.allow_participant_screen_share === false && !isHost) {
+            if (localParticipant?.isScreenShareEnabled) {
+              localParticipant.setScreenShareEnabled(false);
+            }
+          }
           break;
         }
       }
@@ -209,11 +246,16 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
   }, [room, handleDataReceived]);
 
   // Actions
-  const handleSendMessage = async (text: string) => {
+  const handleSendMessage = async (
+    text: string,
+    recipientIdentity: string = "everyone",
+    recipientName?: string
+  ) => {
     if (!localParticipant) return;
     const myId = localParticipant.identity;
     const myName = localParticipant.name || "Me";
-    const data = encodeChatMessage(myId, myName, text);
+    const isDirect = recipientIdentity !== "everyone" && !!recipientIdentity;
+    const data = encodeChatMessage(myId, myName, text, recipientIdentity, recipientName);
     try {
       await localParticipant.publishData(data as any, { reliable: true });
       const localItem: ChatItem = {
@@ -224,6 +266,9 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
           senderName: myName,
           text,
           timestamp: Date.now(),
+          recipientIdentity,
+          recipientName,
+          isDirect,
         },
       };
       setChatItems((prev) => [...prev, localItem]);
@@ -278,6 +323,16 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
     }
   };
 
+  const handleBroadcastPermissions = async (payload: any) => {
+    if (!localParticipant) return;
+    const data = encodePermissionsUpdate(payload);
+    try {
+      await localParticipant.publishData(data as any, { reliable: true });
+    } catch (err) {
+      console.warn("Failed to broadcast permissions update:", err);
+    }
+  };
+
   const handleToggleParticipants = () => {
     if (!isParticipantsOpen) {
       setIsChatOpen(false);
@@ -307,16 +362,35 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
       />
 
       {/* Top Header */}
-      <header className="h-12 w-full border-b border-[#262830] bg-[#16171b]/95 px-4 flex items-center justify-between text-xs select-none shrink-0 z-20">
-        <div className="flex items-center gap-2.5">
-          <span className="font-semibold text-white tracking-tight">
+      <header className="h-12 w-full border-b border-[#262830] bg-[#16171b]/95 px-3 sm:px-4 flex items-center justify-between text-xs select-none shrink-0 z-20">
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          <span className="font-semibold text-white tracking-tight truncate max-w-[120px] sm:max-w-xs">
             {meeting.title}
           </span>
-          <span className="text-[#6c7280] font-mono hidden sm:inline-block">
+          <span className="text-[#6c7280] font-mono hidden md:inline-block">
             ID: {formatMeetingCode(meeting.meeting_code)}
           </span>
+          <button
+            type="button"
+            onClick={handleQuickShare}
+            className="flex items-center gap-1 rounded-md bg-[#252830] hover:bg-[#2d313c] text-[#cbd5e1] hover:text-white px-2 py-1 text-[11px] font-medium border border-[#34394a] transition-colors cursor-pointer shrink-0"
+            title="Copy Meeting Invite Link"
+            aria-label="Copy Meeting Invite Link"
+          >
+            {linkCopied ? (
+              <>
+                <Check className="h-3 w-3 text-green-400" />
+                <span className="text-green-400 text-[10px] sm:text-[11px]">Copied!</span>
+              </>
+            ) : (
+              <>
+                <Link2 className="h-3 w-3 text-[#38bdf8]" />
+                <span className="text-[10px] sm:text-[11px]">Share Link</span>
+              </>
+            )}
+          </button>
           {isHost && (
-            <span className="flex items-center gap-1 rounded bg-[#fbc02d]/20 px-1.5 py-0.5 text-[10px] font-bold text-[#fbc02d] uppercase">
+            <span className="hidden sm:flex items-center gap-1 rounded bg-[#fbc02d]/20 px-1.5 py-0.5 text-[10px] font-bold text-[#fbc02d] uppercase">
               <ShieldCheck className="h-3 w-3" /> Host
             </span>
           )}
@@ -361,6 +435,10 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
           onClose={() => setIsChatOpen(false)}
           items={chatItems}
           currentIdentity={localParticipant?.identity || participantIdentity}
+          participants={participants.map((p) => ({
+            identity: p.identity,
+            name: p.name || p.identity,
+          }))}
           onSendMessage={handleSendMessage}
         />
       </div>
@@ -381,6 +459,7 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
         onLeaveClick={onLeaveClick}
         onEndMeetingForAll={onLeaveClick}
         onMeetingUpdated={onMeetingUpdated}
+        onBroadcastPermissions={handleBroadcastPermissions}
       />
     </>
   );

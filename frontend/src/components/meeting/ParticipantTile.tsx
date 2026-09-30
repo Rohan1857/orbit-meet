@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Mic, MicOff, ShieldCheck, Hand } from "lucide-react";
+import { Mic, MicOff, ShieldCheck, Hand, Pin, PinOff } from "lucide-react";
 import { VideoTrack, useIsSpeaking } from "@livekit/components-react";
 import { Participant, TrackPublication, Track } from "livekit-client";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,8 @@ interface ParticipantTileProps {
   videoTrackPublication?: TrackPublication;
   activeReaction?: string | null;
   isHandRaised?: boolean;
+  isPinned?: boolean;
+  onTogglePin?: (identity: string) => void;
 }
 
 export const ParticipantTile: React.FC<ParticipantTileProps> = ({
@@ -20,6 +22,8 @@ export const ParticipantTile: React.FC<ParticipantTileProps> = ({
   videoTrackPublication,
   activeReaction,
   isHandRaised = false,
+  isPinned = false,
+  onTogglePin,
 }) => {
   const isSpeaking = useIsSpeaking(participant);
 
@@ -45,7 +49,7 @@ export const ParticipantTile: React.FC<ParticipantTileProps> = ({
   return (
     <div
       className={cn(
-        "relative aspect-video w-full rounded-lg bg-[#191b20] border border-[#2b2f3a] overflow-hidden flex items-center justify-center select-none shadow-md",
+        "relative aspect-[3/4] sm:aspect-video w-full rounded-lg bg-[#191b20] border border-[#2b2f3a] overflow-hidden flex items-center justify-center select-none shadow-md group",
         isSpeaking && "ring-2 ring-[#0e72ed] ring-offset-2 ring-offset-[#111215]"
       )}
     >
@@ -73,6 +77,37 @@ export const ParticipantTile: React.FC<ParticipantTileProps> = ({
         </div>
       )}
 
+      {/* Pin Video Tile Button */}
+      {onTogglePin && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onTogglePin(participant.identity);
+          }}
+          className={cn(
+            "absolute top-2 right-2 z-20 flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-all shadow-md cursor-pointer",
+            isPinned
+              ? "bg-[#0e72ed] text-white opacity-100"
+              : "bg-black/60 hover:bg-black/80 text-white opacity-80 sm:opacity-0 group-hover:opacity-100 backdrop-blur-xs"
+          )}
+          title={isPinned ? "Unpin video" : "Pin video"}
+          aria-label={isPinned ? "Unpin video" : "Pin video"}
+        >
+          {isPinned ? (
+            <>
+              <PinOff className="h-3 w-3" />
+              <span className="text-[10px]">Pinned</span>
+            </>
+          ) : (
+            <>
+              <Pin className="h-3 w-3" />
+              <span className="text-[10px]">Pin</span>
+            </>
+          )}
+        </button>
+      )}
+
       {/* Hand Raised Indicator */}
       {isHandRaised && (
         <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 rounded-md bg-[#eab308] text-[#0f172a] px-2 py-0.5 text-xs font-semibold shadow-md animate-in fade-in zoom-in-75 duration-150">
@@ -83,7 +118,7 @@ export const ParticipantTile: React.FC<ParticipantTileProps> = ({
 
       {/* Floating Reaction Overlay */}
       {activeReaction && (
-        <div className="absolute top-2 right-2 z-10 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-xs border border-white/20 p-2 text-2xl shadow-xl animate-in zoom-in-50 fade-in duration-200">
+        <div className="absolute top-10 right-2 z-10 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-xs border border-white/20 p-2 text-2xl shadow-xl animate-in zoom-in-50 fade-in duration-200">
           <span role="img" aria-label="reaction">{activeReaction}</span>
         </div>
       )}

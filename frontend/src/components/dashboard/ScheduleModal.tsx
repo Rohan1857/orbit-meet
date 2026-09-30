@@ -71,6 +71,12 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
         return;
       }
 
+      const durMinutes = parseInt(duration, 10);
+      if (isNaN(durMinutes) || durMinutes < 2 || durMinutes > 90) {
+        setError("Meeting duration must be between 2 and 90 minutes");
+        return;
+      }
+
       setIsSubmitting(true);
       setError(null);
 
@@ -78,7 +84,7 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
         title: title.trim(),
         description: description.trim() || undefined,
         scheduled_at: scheduledDateTime.toISOString(),
-        duration_minutes: parseInt(duration, 10),
+        duration_minutes: durMinutes,
         host_name: user?.display_name || "Host",
       });
 
@@ -227,20 +233,39 @@ export const ScheduleModal: React.FC<ScheduleModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5">
-              Duration
-            </label>
-            <select
-              className="w-full h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-            >
-              <option value="15">15 minutes</option>
-              <option value="30">30 minutes</option>
-              <option value="45">45 minutes</option>
-              <option value="60">1 hour</option>
-              <option value="90">1.5 hours</option>
-            </select>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                Duration (minutes)
+              </label>
+              <span className="text-[11px] text-text-muted">Min 2m, Max 90m</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="2"
+                max="90"
+                className="w-28 h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                required
+              />
+              <div className="flex items-center gap-1.5 overflow-x-auto">
+                {["15", "30", "45", "60", "90"].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setDuration(preset)}
+                    className={`px-2.5 py-1 text-xs rounded-md border transition-colors cursor-pointer ${
+                      duration === preset
+                        ? "border-[#0e72ed] bg-[#0e72ed]/10 text-[#0e72ed] font-semibold"
+                        : "border-border bg-surface text-text-secondary hover:text-text-primary hover:bg-surface-muted"
+                    }`}
+                  >
+                    {preset}m
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-border-subtle">
