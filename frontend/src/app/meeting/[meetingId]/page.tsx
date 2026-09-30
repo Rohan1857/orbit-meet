@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { LiveKitRoom } from "@livekit/components-react";
+import { LiveKitRoom, RoomAudioRenderer, StartAudio } from "@livekit/components-react";
 import { AlertCircle, ArrowLeft, ShieldCheck } from "lucide-react";
 import { api } from "@/lib/api";
 import { Meeting } from "@/types";
@@ -186,6 +186,14 @@ export default function MeetingRoomPage({ params }: PageProps) {
           video={initialVideo}
           className="flex h-full w-full flex-col overflow-hidden relative"
         >
+          {/* Audio output playback for all remote participants */}
+          <RoomAudioRenderer />
+          {/* Autoplay blocker prompt fallback */}
+          <StartAudio
+            label="Click to allow audio playback"
+            className="absolute top-16 left-1/2 -translate-x-1/2 z-50 rounded-lg bg-[#0e72ed] px-4 py-2 text-xs font-semibold text-white shadow-xl hover:bg-[#0b5cdb] transition-all cursor-pointer"
+          />
+
           {/* Top Meeting Header Strip */}
           <header className="h-12 w-full border-b border-[#262830] bg-[#16171b]/90 px-4 flex items-center justify-between text-xs select-none shrink-0 z-20">
             <div className="flex items-center gap-2.5">

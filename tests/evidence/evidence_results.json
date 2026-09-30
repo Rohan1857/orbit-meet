@@ -6,23 +6,23 @@
     },
     "host_registration_and_login": {
       "passed": true,
-      "details": "Host registered and logged in as host_e2e_1790715133@orbitmeet.test"
+      "details": "Host registered and logged in as host_e2e_1790747679@orbitmeet.test"
     },
     "create_instant_meeting": {
       "passed": true,
-      "details": "Code: 8167199488"
+      "details": "Code: 3592731530"
     },
     "host_livekit_connection": {
       "passed": true,
-      "details": "Host connected to room 8167199488"
+      "details": "Host connected to room 3592731530"
     },
     "guest_join_no_login_redirect": {
       "passed": true,
-      "details": "Guest stayed on https://orbitmeet-nu.vercel.app/join?meeting=8167199488 without auth redirect"
+      "details": "Guest stayed on https://orbitmeet-nu.vercel.app/join?meeting=3592731530 without auth redirect"
     },
     "participant_livekit_connection": {
       "passed": true,
-      "details": "Alice connected to room 8167199488"
+      "details": "Alice connected to room 3592731530"
     },
     "host_sees_alice_videotile": {
       "passed": true,
@@ -102,13 +102,13 @@
     "[error] Failed to load resource: the server responded with a status of 404 ()"
   ],
   "console_logs_participant": [
-    "[error] Failed to load resource: the server responded with a status of 404 ()",
     "[error] Failed to load resource: the server responded with a status of 404 ()"
   ],
   "network_errors_host": [
-    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_133930_184965&cas=q3EVamXXurbjg2Cqyudc2w54Zf87fTZ57uWf2grJgJg - net::ERR_ABORTED",
-    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_133943_270301&cas=CEUUEWK3g9u8Wcsw1Vj%2FEMCQbURba7GnzVzi6kFLstQ - net::ERR_ABORTED",
-    "GET https://orbitmeet-nu.vercel.app/meeting/8167199488?_rsc=ZmCQ44b92m4mXe_R - net::ERR_ABORTED"
+    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_679960_408636&cas=zsN35rAkmkDFmjHX2ErZOSJJGSaT7%2FxYWVN%2FrvQuuCE - net::ERR_ABORTED",
+    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_679976_30496&cas=5B9nbcU%2FL4HoEcZ4ZBySLiq6GN5EwgEgIXEG6Z8Fmls - net::ERR_ABORTED"
   ],
-  "network_errors_participant": []
+  "network_errors_participant": [
+    "GET https://orbitmeet-nu.vercel.app/meeting/3592731530?_rsc=a87G1evOvoS83bya - net::ERR_ABORTED"
+  ]
 }

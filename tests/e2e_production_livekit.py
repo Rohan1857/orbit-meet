@@ -196,17 +196,25 @@ def run_test():
             page_a.wait_for_selector("footer button:has-text('Mute')", timeout=5000)
             log_step("host_unmute_toggle", True, "Host mic restored to Mute")
 
-            # Host toggles Camera Off
-            host_video_btn = page_a.locator("footer button:has-text('Stop Video')").first
-            host_video_btn.click()
-            page_a.wait_for_selector("footer button:has-text('Start Video')", timeout=5000)
-            page_a.screenshot(path=os.path.join(SCREENSHOTS_DIR, "09_host_camera_off.png"))
-            log_step("host_stop_video", True, "Host video stopped (avatar fallback active)")
+            # Host exercises Camera Toggle
+            if page_a.locator("footer button:has-text('Stop Video')").count() > 0:
+                host_video_btn = page_a.locator("footer button:has-text('Stop Video')").first
+                host_video_btn.click()
+                page_a.wait_for_selector("footer button:has-text('Start Video')", timeout=5000)
+                page_a.screenshot(path=os.path.join(SCREENSHOTS_DIR, "09_host_camera_off.png"))
+                log_step("host_stop_video", True, "Host video stopped (avatar fallback active)")
 
-            # Host toggles Camera On
-            page_a.locator("footer button:has-text('Start Video')").first.click()
-            page_a.wait_for_selector("footer button:has-text('Stop Video')", timeout=5000)
-            log_step("host_start_video", True, "Host video restored")
+                page_a.locator("footer button:has-text('Start Video')").first.click()
+                page_a.wait_for_selector("footer button:has-text('Stop Video')", timeout=5000)
+                log_step("host_start_video", True, "Host video restored")
+            else:
+                page_a.locator("footer button:has-text('Start Video')").first.click()
+                page_a.wait_for_selector("footer button:has-text('Stop Video')", timeout=5000)
+                log_step("host_start_video", True, "Host video started")
+
+                page_a.locator("footer button:has-text('Stop Video')").first.click()
+                page_a.wait_for_selector("footer button:has-text('Start Video')", timeout=5000)
+                log_step("host_stop_video", True, "Host video stopped")
 
             # 7. Exercise Screen Sharing
             print("\n--- 9. Testing Screen Sharing ---")

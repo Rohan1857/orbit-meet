@@ -57,11 +57,24 @@ export const PreJoin: React.FC<PreJoinProps> = ({ meeting, isHost, onJoin }) => 
           videoRef.current.srcObject = stream;
         }
       } catch (err: any) {
-        if (active) {
-          console.warn("Media devices not accessible or permission denied:", err);
-          setPermissionError("Camera/Microphone access not available or denied.");
+        if (!active) return;
+        // Fallback: Attempt audio-only if camera is unavailable or denied
+        try {
+          const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          if (!active) {
+            audioStream.getTracks().forEach((t) => t.stop());
+            return;
+          }
+          setMediaStream(audioStream);
           setVideoEnabled(false);
-          setAudioEnabled(false);
+          setAudioEnabled(true);
+        } catch {
+          if (active) {
+            console.warn("Media devices not accessible or permission denied:", err);
+            setPermissionError("Camera/Microphone access not available or denied.");
+            setVideoEnabled(false);
+            setAudioEnabled(false);
+          }
         }
       }
     }
