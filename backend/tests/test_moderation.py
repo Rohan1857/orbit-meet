@@ -112,7 +112,7 @@ def test_host_mute_single_participant_success(client, auth_headers, monkeypatch)
 
     # Mock LiveKitService.mute_participant
     async def mock_mute(room_name, identity, muted=True):
-        return True
+        return {"status": "muted", "identity": identity, "muted": True, "tracks_muted": 1}
 
     from app.services.livekit_service import LiveKitService
     monkeypatch.setattr(LiveKitService, "mute_participant", mock_mute)
@@ -126,7 +126,61 @@ def test_host_mute_single_participant_success(client, auth_headers, monkeypatch)
     data = mute_res.json()
     assert data["status"] == "muted"
     assert data["identity"] == participant_identity
-    assert data["success"] is True
+    assert data["tracks_muted"] == 1
+
+
+def test_host_mute_single_participant_not_found(client, auth_headers, monkeypatch):
+    create_res = client.post("/api/meetings/instant", headers=auth_headers, json={"title": "Mute 404 Test"})
+    meeting_code = create_res.json()["meeting_code"]
+
+    async def mock_mute_not_found(room_name, identity, muted=True):
+        return {"status": "not_found", "identity": identity, "detail": "Participant not found"}
+
+    from app.services.livekit_service import LiveKitService
+    monkeypatch.setattr(LiveKitService, "mute_participant", mock_mute_not_found)
+
+    mute_res = client.post(
+        f"/api/meetings/{meeting_code}/participants/nonexistent_user/mute",
+        headers=auth_headers
+    )
+    assert mute_res.status_code == 404
+    assert "not found" in mute_res.json()["detail"].lower()
+
+
+def test_host_mute_single_participant_no_audio_tracks(client, auth_headers, monkeypatch):
+    create_res = client.post("/api/meetings/instant", headers=auth_headers, json={"title": "Mute 400 Test"})
+    meeting_code = create_res.json()["meeting_code"]
+
+    async def mock_mute_no_audio(room_name, identity, muted=True):
+        return {"status": "no_audio_tracks", "identity": identity, "detail": "No audio tracks published"}
+
+    from app.services.livekit_service import LiveKitService
+    monkeypatch.setattr(LiveKitService, "mute_participant", mock_mute_no_audio)
+
+    mute_res = client.post(
+        f"/api/meetings/{meeting_code}/participants/silent_user/mute",
+        headers=auth_headers
+    )
+    assert mute_res.status_code == 400
+    assert "no published audio tracks" in mute_res.json()["detail"]
+
+
+def test_host_mute_single_participant_livekit_failure(client, auth_headers, monkeypatch):
+    create_res = client.post("/api/meetings/instant", headers=auth_headers, json={"title": "Mute 502 Test"})
+    meeting_code = create_res.json()["meeting_code"]
+
+    async def mock_mute_fail(room_name, identity, muted=True):
+        raise ConnectionError("LiveKit connection timeout")
+
+    from app.services.livekit_service import LiveKitService
+    monkeypatch.setattr(LiveKitService, "mute_participant", mock_mute_fail)
+
+    mute_res = client.post(
+        f"/api/meetings/{meeting_code}/participants/any_user/mute",
+        headers=auth_headers
+    )
+    assert mute_res.status_code == 502
+    assert "LiveKit server error" in mute_res.json()["detail"]
 
 
 def test_host_mute_all_participants_success(client, auth_headers, monkeypatch):
@@ -135,7 +189,14 @@ def test_host_mute_all_participants_success(client, auth_headers, monkeypatch):
 
     # Mock LiveKitService.mute_all_participants
     async def mock_mute_all(room_name, host_identity=None):
-        return 2
+        return {
+            "status": "muted_all",
+            "room": room_name,
+            "muted_participants": 2,
+            "skipped_participants": 1,
+            "failed_participants": 0,
+            "total_participants": 3
+        }
 
     from app.services.livekit_service import LiveKitService
     monkeypatch.setattr(LiveKitService, "mute_all_participants", mock_mute_all)
@@ -148,8 +209,26 @@ def test_host_mute_all_participants_success(client, auth_headers, monkeypatch):
     assert mute_all_res.status_code == 200
     data = mute_all_res.json()
     assert data["status"] == "muted_all"
-    assert data["meeting_code"] == meeting_code
-    assert data["muted_count"] == 2
+    assert data["muted_participants"] == 2
+    assert data["skipped_participants"] == 1
+
+
+def test_host_mute_all_participants_livekit_failure(client, auth_headers, monkeypatch):
+    create_res = client.post("/api/meetings/instant", headers=auth_headers, json={"title": "Mute All 502 Test"})
+    meeting_code = create_res.json()["meeting_code"]
+
+    async def mock_mute_all_fail(room_name, host_identity=None):
+        raise ConnectionError("LiveKit cloud unreachable")
+
+    from app.services.livekit_service import LiveKitService
+    monkeypatch.setattr(LiveKitService, "mute_all_participants", mock_mute_all_fail)
+
+    mute_all_res = client.post(
+        f"/api/meetings/{meeting_code}/mute-all",
+        headers=auth_headers
+    )
+    assert mute_all_res.status_code == 502
+    assert "LiveKit server error" in mute_all_res.json()["detail"]
 
 
 def test_non_owner_mute_rejected_with_403(client, auth_headers):

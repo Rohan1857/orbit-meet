@@ -72,67 +72,108 @@ class LiveKitService:
             return False
 
     @classmethod
-    async def mute_participant(cls, room_name: str, identity: str, muted: bool = True) -> bool:
-        """Mutes all published audio tracks for a given participant."""
+    async def mute_participant(cls, room_name: str, identity: str, muted: bool = True) -> dict:
+        """Mutes all published audio tracks for a given participant via LiveKit server API."""
         api_key, api_secret, url = cls.get_api_credentials()
         if not settings.livekit_api_key or not settings.livekit_api_secret:
-            return True
-        try:
-            async with api.LiveKitAPI(url, api_key, api_secret) as lk:
+            raise RuntimeError("LiveKit credentials not configured")
+
+        async with api.LiveKitAPI(url, api_key, api_secret) as lk:
+            try:
                 participant = await lk.room.get_participant(
                     api.RoomParticipantIdentity(room=room_name, identity=identity)
                 )
-                muted_any = False
-                for track in participant.tracks:
-                    if track.type == api.TrackType.AUDIO or track.source == api.TrackSource.MICROPHONE:
-                        await lk.room.mute_published_track(
-                            api.MuteRoomTrackRequest(
-                                room=room_name,
-                                identity=identity,
-                                track_sid=track.sid,
-                                muted=muted
-                            )
-                        )
-                        muted_any = True
-                return muted_any or True
-        except Exception:
-            return False
+            except Exception as e:
+                return {"status": "not_found", "identity": identity, "detail": str(e)}
+
+            if not participant:
+                return {"status": "not_found", "identity": identity, "detail": "Participant not found"}
+
+            audio_tracks = [
+                track for track in participant.tracks
+                if track.type == api.TrackType.AUDIO or track.source == api.TrackSource.MICROPHONE
+            ]
+            if not audio_tracks:
+                return {"status": "no_audio_tracks", "identity": identity, "detail": "No audio tracks published"}
+
+            all_already_muted = all(track.muted for track in audio_tracks)
+            if all_already_muted and muted:
+                return {"status": "already_muted", "identity": identity, "muted": True, "tracks_muted": 0}
+
+            muted_count = 0
+            for track in audio_tracks:
+                await lk.room.mute_published_track(
+                    api.MuteRoomTrackRequest(
+                        room=room_name,
+                        identity=identity,
+                        track_sid=track.sid,
+                        muted=muted
+                    )
+                )
+                muted_count += 1
+
+            return {"status": "muted", "identity": identity, "muted": muted, "tracks_muted": muted_count}
 
     @classmethod
-    async def mute_all_participants(cls, room_name: str, host_identity: str = None) -> int:
+    async def mute_all_participants(cls, room_name: str, host_identity: str = None) -> dict:
         """Mutes all published audio tracks for all non-host participants in a room."""
         api_key, api_secret, url = cls.get_api_credentials()
         if not settings.livekit_api_key or not settings.livekit_api_secret:
-            return 0
-        muted_count = 0
-        try:
-            async with api.LiveKitAPI(url, api_key, api_secret) as lk:
-                response = await lk.room.list_participants(
-                    api.ListParticipantsRequest(room=room_name)
-                )
-                for p in response.participants:
-                    # Skip the host
-                    if host_identity and p.identity == host_identity:
-                        continue
-                    if p.permission and p.permission.room_admin:
-                        continue
-                    if p.identity.startswith("host_"):
-                        continue
+            raise RuntimeError("LiveKit credentials not configured")
 
-                    for track in p.tracks:
-                        if track.type == api.TrackType.AUDIO or track.source == api.TrackSource.MICROPHONE:
-                            try:
-                                await lk.room.mute_published_track(
-                                    api.MuteRoomTrackRequest(
-                                        room=room_name,
-                                        identity=p.identity,
-                                        track_sid=track.sid,
-                                        muted=True
-                                    )
+        async with api.LiveKitAPI(url, api_key, api_secret) as lk:
+            response = await lk.room.list_participants(
+                api.ListParticipantsRequest(room=room_name)
+            )
+            muted_participants = 0
+            skipped_participants = 0
+            failed_participants = 0
+
+            for p in response.participants:
+                # Skip the host
+                if host_identity and p.identity == host_identity:
+                    skipped_participants += 1
+                    continue
+                if p.permission and p.permission.room_admin:
+                    skipped_participants += 1
+                    continue
+                if p.identity.startswith("host_"):
+                    skipped_participants += 1
+                    continue
+
+                audio_tracks = [
+                    track for track in p.tracks
+                    if track.type == api.TrackType.AUDIO or track.source == api.TrackSource.MICROPHONE
+                ]
+                if not audio_tracks or all(track.muted for track in audio_tracks):
+                    skipped_participants += 1
+                    continue
+
+                participant_muted = False
+                for track in audio_tracks:
+                    if not track.muted:
+                        try:
+                            await lk.room.mute_published_track(
+                                api.MuteRoomTrackRequest(
+                                    room=room_name,
+                                    identity=p.identity,
+                                    track_sid=track.sid,
+                                    muted=True
                                 )
-                                muted_count += 1
-                            except Exception:
-                                pass
-            return muted_count
-        except Exception:
-            return 0
+                            )
+                            participant_muted = True
+                        except Exception:
+                            pass
+                if participant_muted:
+                    muted_participants += 1
+                else:
+                    failed_participants += 1
+
+            return {
+                "status": "muted_all",
+                "room": room_name,
+                "muted_participants": muted_participants,
+                "skipped_participants": skipped_participants,
+                "failed_participants": failed_participants,
+                "total_participants": len(response.participants)
+            }

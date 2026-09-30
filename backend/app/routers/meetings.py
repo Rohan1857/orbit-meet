@@ -192,13 +192,17 @@ def leave_meeting(
 
 def _verify_meeting_host(meeting: Meeting, current_user: Optional[User], x_host_token: Optional[str]):
     if meeting.owner_user_id is not None:
-        if current_user and meeting.owner_user_id == current_user.id:
-            return
-        if x_host_token and meeting.host_control_token == x_host_token:
-            return
-        raise HTTPException(status_code=403, detail="Only meeting host can perform this action")
+        if not current_user or meeting.owner_user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Unauthorized: Only the meeting owner can perform host moderation actions"
+            )
+        return
     if not (x_host_token and meeting.host_control_token == x_host_token):
-        raise HTTPException(status_code=403, detail="Only meeting host can perform this action")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Unauthorized: Host control token required for moderation actions"
+        )
 
 
 @router.post("/{meeting_code}/lock")

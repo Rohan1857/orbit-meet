@@ -1,3 +1,5 @@
+import os
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,5 +24,18 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
+    @model_validator(mode="after")
+    def validate_production_security(self):
+        env = (os.getenv("ENVIRONMENT") or self.environment or os.getenv("RAILWAY_ENVIRONMENT") or "development").lower()
+        self.environment = env
+        KNOWN_INSECURE_DEFAULT = "orbitmeet-secure-default-jwt-secret-key-32chars"
+        if env == "production":
+            if not self.jwt_secret or self.jwt_secret.strip() == "":
+                raise ValueError("FATAL: JWT_SECRET must be explicitly configured in production environment!")
+            if self.jwt_secret == KNOWN_INSECURE_DEFAULT:
+                raise ValueError("FATAL: Insecure default JWT_SECRET is forbidden in production environment!")
+        return self
+
 
 settings = Settings()
+

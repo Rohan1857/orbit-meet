@@ -66,15 +66,31 @@ async def mute_participant(
     identity: str,
     meeting: Meeting = Depends(verify_host)
 ):
-    # Call LiveKit server-side track mute
-    success = await LiveKitService.mute_participant(meeting.meeting_code, identity, muted=True)
-    return {"status": "muted", "identity": identity, "success": success}
+    try:
+        res = await LiveKitService.mute_participant(meeting.meeting_code, identity, muted=True)
+    except RuntimeError as e:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"LiveKit server error: {str(e)}")
+
+    if res.get("status") == "not_found":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Participant not found in active meeting room")
+    if res.get("status") == "no_audio_tracks":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Participant has no published audio tracks to mute")
+
+    return res
 
 
 @router.post("/mute-all")
 async def mute_all_participants(
-    meeting: Meeting = Depends(verify_host)
+    meeting: Meeting = Depends(verify_host),
+    current_user: Optional[User] = Depends(get_current_user)
 ):
-    # Call LiveKit server-side mute all
-    muted_count = await LiveKitService.mute_all_participants(meeting.meeting_code)
-    return {"status": "muted_all", "meeting_code": meeting.meeting_code, "muted_count": muted_count}
+    host_identity = f"host_{current_user.id}" if current_user else None
+    try:
+        res = await LiveKitService.mute_all_participants(meeting.meeting_code, host_identity=host_identity)
+        return res
+    except RuntimeError as e:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"LiveKit server error: {str(e)}")

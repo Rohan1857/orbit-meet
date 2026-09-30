@@ -57,6 +57,17 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
   const room = useRoomContext();
   const { localParticipant } = useLocalParticipant();
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as any).__orbitmeet_room = room;
+    }
+    return () => {
+      if (typeof window !== "undefined" && (window as any).__orbitmeet_room === room) {
+        delete (window as any).__orbitmeet_room;
+      }
+    };
+  }, [room]);
+
   // Panels mutual exclusivity
   const [isParticipantsOpen, setIsParticipantsOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
