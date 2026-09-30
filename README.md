@@ -64,8 +64,9 @@ LiveKit Cloud SFU
 - **Pre-Join Experience**: Local camera/microphone preview before entering the room, device toggle controls, and customizable display name.
 - **Realtime Audio & Video**: Multi-user media fanout powered by LiveKit Cloud SFU with active speaker detection, initials avatar fallback, and dynamic tile layout.
 - **Screen Sharing**: One-click display media streaming.
-- **Host Moderation**: Server-authoritative host verification enabling host-only Mute-All, Kick Participant, and End Meeting for All.
-- **Participant Safety & Security**: Non-host attendees and cross-user moderation requests are strictly rejected with `403 Forbidden` on all administrative endpoints.
+- **Host Moderation**: Server-authoritative host verification enabling host-only Single Mute, Mute-All, Room Lock/Unlock, Kick Participant, and End Meeting for All.
+- **In-Meeting Engagement**: Text chat with unread message badge count, live animated emoji reactions with automatic fadeout, raise/lower hand queue with host controls, and room locking (rejects subsequent joiners with 423 Locked).
+- **Participant Safety & Security**: Non-host attendees and cross-user moderation requests are strictly rejected with `403 Forbidden` on all administrative endpoints. Real LiveKit server track muting guarantees silenced audio at the SFU level.
 
 ---
 
@@ -107,6 +108,7 @@ CREATE TABLE meetings (
     scheduled_at DATETIME,
     duration_minutes INTEGER DEFAULT 45,
     status VARCHAR(20) NOT NULL CHECK (status IN ('scheduled', 'live', 'ended', 'cancelled')),
+    is_locked BOOLEAN NOT NULL DEFAULT 0,
     host_control_token VARCHAR(64) NOT NULL,
     owner_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -151,17 +153,18 @@ All API routes are prefixed under `/api`.
 | `POST` | `/api/meetings` | Schedule future meeting assigned to authenticated user | `Bearer <token>` (Required) | 201, 401, 422 |
 | `GET` | `/api/meetings?filter=upcoming` | List upcoming meetings for authenticated user | `Bearer <token>` (Required) | 200, 401 |
 | `GET` | `/api/meetings?filter=recent` | List recent meetings for authenticated user | `Bearer <token>` (Required) | 200, 401 |
+| `POST` | `/api/meetings/{code}/lock` | Toggle lock state on meeting room | `Bearer <token>` (Owner Required) | 200, 403, 404 |
 | `POST` | `/api/meetings/{code}/end` | End meeting for all attendees | `Bearer <token>` (Owner Required) | 200, 403, 404 |
 | `DELETE` | `/api/meetings/{code}/participants/{id}` | Kick attendee from LiveKit room & database | `Bearer <token>` (Owner Required) | 200, 403, 404 |
-| `POST` | `/api/meetings/{code}/participants/{id}/mute` | Mute specific participant audio track | `Bearer <token>` (Owner Required) | 200, 403, 404 |
-| `POST` | `/api/meetings/{code}/mute-all` | Mute all non-host attendees | `Bearer <token>` (Owner Required) | 200, 403, 404 |
+| `POST` | `/api/meetings/{code}/participants/{id}/mute` | Mute specific participant audio track via LiveKit SFU | `Bearer <token>` (Owner Required) | 200, 400, 403, 404, 502 |
+| `POST` | `/api/meetings/{code}/mute-all` | Mute all non-host attendees via LiveKit SFU | `Bearer <token>` (Owner Required) | 200, 403, 404, 502 |
 
 ### Public Guest & Lookup Endpoints
 | Method | Endpoint | Description | Authentication | Status Codes |
 |---|---|---|---|---|
-| `GET` | `/api/health` | Service health and database status | Public | 200 |
+| `GET` | `/api/health` | Service health, DB connectivity, environment status | Public | 200 |
 | `GET` | `/api/meetings/{code}` | Retrieve meeting join metadata (omits host secret token) | Public | 200, 404 |
-| `POST` | `/api/meetings/{code}/join` | Join meeting and issue signed LiveKit JWT | Public (Guest Safe) | 200, 400, 404 |
+| `POST` | `/api/meetings/{code}/join` | Join meeting and issue signed LiveKit JWT (rejects if locked: 423) | Public (Guest Safe) | 200, 400, 404, 423 |
 | `POST` | `/api/meetings/{code}/leave` | Record participant departure | Public | 200 |
 
 ---
@@ -245,8 +248,8 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.
 cd backend
 pytest -v
 ```
-Runs 31 automated tests verifying:
-- System health & DB connectivity
+Runs 45 automated tests verifying:
+- System health & DB connectivity & production environment configuration
 - User registration (validations, password hashing, duplicates)
 - User login (password verification, invalid credentials)
 - Current user retrieval & logout
@@ -257,6 +260,9 @@ Runs 31 automated tests verifying:
 - Scoped upcoming and recent query filters
 - Join flow & LiveKit token issuance (guests and owners)
 - Meeting ownership assignment and scoped listing isolation
+- Host moderation: LiveKit SFU single-participant audio track muting (200, 400, 404, 502)
+- Host moderation: LiveKit SFU mute-all non-host audio tracks (200, 502)
+- Meeting room locking & late-joiner rejection (423 Locked)
 - Cross-user moderation security rejection (403 Forbidden)
 - Unauthenticated guest access (P0 invariant)
 
