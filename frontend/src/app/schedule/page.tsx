@@ -127,7 +127,7 @@ export default function SchedulePage() {
               Schedule a Meeting
             </h2>
             <p className="text-xs text-text-secondary">
-              Configure session parameters, calendar invitations, and participant entry defaults.
+              Plan an upcoming meeting and share the invite link.
             </p>
           </div>
 
@@ -163,19 +163,19 @@ export default function SchedulePage() {
                   {copied ? (
                     <>
                       <Check className="h-4 w-4 text-green-600" />
-                      <span>Copied Invite</span>
+                      <span>Copied</span>
                     </>
                   ) : (
                     <>
                       <Copy className="h-4 w-4 text-text-secondary" />
-                      <span>Copy Invitation</span>
+                      <span>Copy Link</span>
                     </>
                   )}
                 </Button>
                 <Link href={`/meeting/${createdMeeting.meeting_code}`}>
                   <Button size="md" className="gap-2 w-full sm:w-auto font-semibold">
                     <Video className="h-4 w-4" />
-                    <span>Start Session Now</span>
+                    <span>Start Meeting</span>
                   </Button>
                 </Link>
               </div>

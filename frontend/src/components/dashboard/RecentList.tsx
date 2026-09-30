@@ -46,13 +46,13 @@ export const RecentList: React.FC<RecentListProps> = ({ meetings, isLoading }) =
 
   if (meetings.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border bg-surface/50 p-8 text-center space-y-2">
-        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-surface-muted text-text-muted border border-border-subtle">
-          <History className="h-5 w-5" />
+      <div className="rounded-xl border border-dashed border-border bg-surface/50 p-5 text-center space-y-2">
+        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-surface-muted text-text-muted border border-border-subtle">
+          <History className="h-4 w-4" />
         </div>
         <h4 className="text-sm font-semibold text-text-primary">No recent meetings</h4>
-        <p className="mt-1 text-xs text-text-secondary max-w-xs mx-auto">
-          Completed sessions and past conferences will be catalogued here for reference.
+        <p className="mt-0.5 text-xs text-text-secondary max-w-xs mx-auto">
+          Past meetings will appear here.
         </p>
       </div>
     );

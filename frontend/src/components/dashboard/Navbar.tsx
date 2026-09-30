@@ -216,14 +216,32 @@ export const Navbar: React.FC = () => {
       <Modal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        title="Application Settings"
-        description="Configure meeting defaults, hardware preferences, and system connectivity."
+        title="Settings"
+        description="Manage your meeting defaults and application preferences."
       >
         <div className="space-y-5">
-          {/* Section 1: Meeting Joining Preferences */}
-          <div className="space-y-3">
+          {/* Section 1: Account Information */}
+          {user && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">
+                Account
+              </h4>
+              <div className="rounded-lg border border-border-subtle bg-surface-muted p-3 text-xs flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-text-primary">{user.display_name}</p>
+                  <p className="text-text-muted text-[11px]">{user.email}</p>
+                </div>
+                <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-semibold text-green-700 border border-green-200">
+                  Active
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Section 2: Meeting Joining Preferences */}
+          <div className="space-y-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">
-              Meeting Join Defaults
+              Meeting Defaults
             </h4>
             <div className="space-y-2.5 rounded-lg border border-border-subtle bg-surface-muted p-3.5 text-xs">
               <label className="flex items-center justify-between cursor-pointer">
@@ -256,30 +274,14 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Section 2: Infrastructure Diagnostics */}
+          {/* Section 3: About / System Info */}
           <div className="space-y-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">
-              Live Infrastructure
+              About OrbitMeet
             </h4>
-            <div className="space-y-2 rounded-lg border border-border-subtle bg-surface-muted p-3.5 text-xs text-text-secondary">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <Server className="h-3.5 w-3.5 text-text-muted" />
-                  <span>Realtime Media SFU:</span>
-                </span>
-                <span className="font-mono text-[11px] text-[#137333] bg-[#e6f4ea] px-2 py-0.5 rounded font-semibold">
-                  LiveKit Cloud Online
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <ShieldCheck className="h-3.5 w-3.5 text-text-muted" />
-                  <span>Backend Environment:</span>
-                </span>
-                <span className="font-mono text-[11px] text-[#1967d2] bg-[#e8f0fe] px-2 py-0.5 rounded font-semibold">
-                  Railway Production
-                </span>
-              </div>
+            <div className="rounded-lg border border-border-subtle bg-surface-muted p-3 text-xs flex items-center justify-between text-text-secondary">
+              <span>Version</span>
+              <span className="font-mono text-text-primary font-medium">1.0.0</span>
             </div>
           </div>
 
@@ -287,10 +289,10 @@ export const Navbar: React.FC = () => {
           <div className="flex items-center justify-between pt-3 border-t border-border-subtle">
             {settingsSaved ? (
               <span className="flex items-center gap-1 text-xs text-green-600 font-semibold">
-                <CheckCircle2 className="h-3.5 w-3.5" /> Saved!
+                <CheckCircle2 className="h-3.5 w-3.5" /> Preferences saved
               </span>
             ) : (
-              <span className="text-[11px] text-text-muted">Saved to browser profile</span>
+              <span className="text-[11px] text-text-muted">Saved to this device</span>
             )}
             <div className="flex gap-2">
               <Button
@@ -317,28 +319,52 @@ export const Navbar: React.FC = () => {
       <Modal
         isOpen={isHelpOpen}
         onClose={() => setIsHelpOpen(false)}
-        title="Help & Conferencing Guide"
-        description="Quick navigation, keyboard shortcuts, and conferencing controls."
+        title="Help & Guides"
+        description="Quick answers and conferencing troubleshooting."
       >
-        <div className="space-y-5">
-          {/* Section 1: Meeting Basics */}
-          <div className="space-y-2.5">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">
-              Meeting Controls
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <div className="rounded-lg border border-border-subtle bg-surface-muted p-3 space-y-1">
-                <p className="font-semibold text-text-primary">Instant Meetings</p>
-                <p className="text-text-secondary text-[11px] leading-relaxed">
-                  Click <strong>New Meeting</strong> on your dashboard to instantly launch a private 10-digit conference.
-                </p>
-              </div>
-              <div className="rounded-lg border border-border-subtle bg-surface-muted p-3 space-y-1">
-                <p className="font-semibold text-text-primary">Guest Joining</p>
-                <p className="text-text-secondary text-[11px] leading-relaxed">
-                  Guests join freely via your invite link or meeting code with zero login requirement.
-                </p>
-              </div>
+        <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+          {/* Section 1: Meeting Essentials */}
+          <div className="space-y-2 text-xs">
+            <div className="rounded-lg border border-border-subtle bg-surface-muted p-3 space-y-1">
+              <p className="font-semibold text-text-primary">Start a Meeting</p>
+              <p className="text-text-secondary text-[11px] leading-relaxed">
+                Click <strong>New Meeting</strong> on the dashboard to immediately start an instant session and invite others with your link.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-border-subtle bg-surface-muted p-3 space-y-1">
+              <p className="font-semibold text-text-primary">Join a Meeting</p>
+              <p className="text-text-secondary text-[11px] leading-relaxed">
+                Enter any 10-digit meeting ID or paste the invite link. Guests join instantly without creating an account.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-border-subtle bg-surface-muted p-3 space-y-1">
+              <p className="font-semibold text-text-primary">Schedule a Meeting</p>
+              <p className="text-text-secondary text-[11px] leading-relaxed">
+                Click <strong>Schedule</strong> to plan upcoming meetings with title, date, time, and optional join security settings.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-border-subtle bg-surface-muted p-3 space-y-1">
+              <p className="font-semibold text-text-primary">Camera & Microphone Permissions</p>
+              <p className="text-text-secondary text-[11px] leading-relaxed">
+                If your camera or microphone is not working, check the lock icon in your browser address bar and set permissions to Allow.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-border-subtle bg-surface-muted p-3 space-y-1">
+              <p className="font-semibold text-text-primary">Screen Sharing</p>
+              <p className="text-text-secondary text-[11px] leading-relaxed">
+                Select <strong>Share Screen</strong> in the in-meeting toolbar or on the dashboard to present an application window, browser tab, or entire display.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-border-subtle bg-surface-muted p-3 space-y-1">
+              <p className="font-semibold text-text-primary">Common Troubleshooting</p>
+              <p className="text-text-secondary text-[11px] leading-relaxed">
+                If connection drops, refresh the browser page. OrbitMeet automatically re-establishes your session and audio/video tracks.
+              </p>
             </div>
           </div>
 
@@ -350,25 +376,19 @@ export const Navbar: React.FC = () => {
             </h4>
             <div className="divide-y divide-border-subtle rounded-lg border border-border-subtle bg-surface-muted text-xs">
               <div className="flex items-center justify-between p-2.5">
-                <span className="text-text-secondary">Toggle Mute / Unmute</span>
+                <span className="text-text-secondary">Toggle Microphone</span>
                 <kbd className="rounded border border-border bg-surface px-2 py-0.5 font-mono text-[11px] text-text-primary font-semibold shadow-2xs">
                   Alt + A
                 </kbd>
               </div>
               <div className="flex items-center justify-between p-2.5">
-                <span className="text-text-secondary">Start / Stop Camera</span>
+                <span className="text-text-secondary">Toggle Camera</span>
                 <kbd className="rounded border border-border bg-surface px-2 py-0.5 font-mono text-[11px] text-text-primary font-semibold shadow-2xs">
                   Alt + V
                 </kbd>
               </div>
               <div className="flex items-center justify-between p-2.5">
-                <span className="text-text-secondary">Toggle Screen Sharing</span>
-                <kbd className="rounded border border-border bg-surface px-2 py-0.5 font-mono text-[11px] text-text-primary font-semibold shadow-2xs">
-                  Alt + S
-                </kbd>
-              </div>
-              <div className="flex items-center justify-between p-2.5">
-                <span className="text-text-secondary">Close Panels / Modals</span>
+                <span className="text-text-secondary">Close Dialogs</span>
                 <kbd className="rounded border border-border bg-surface px-2 py-0.5 font-mono text-[11px] text-text-primary font-semibold shadow-2xs">
                   Escape
                 </kbd>
@@ -376,23 +396,14 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Section 3: Links */}
-          <div className="flex items-center justify-between pt-2 border-t border-border-subtle text-xs">
-            <a
-              href="https://github.com/Rohan1857/orbit-meet"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-[#0e72ed] hover:underline font-medium"
-            >
-              <span>GitHub Documentation</span>
-              <ExternalLink className="h-3 w-3" />
-            </a>
+          {/* Footer */}
+          <div className="flex items-center justify-end pt-2 border-t border-border-subtle">
             <Button
               size="sm"
               onClick={() => setIsHelpOpen(false)}
               className="text-xs font-semibold"
             >
-              Got it
+              Close
             </Button>
           </div>
         </div>

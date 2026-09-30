@@ -14,15 +14,9 @@ import { Meeting } from "@/types";
 import {
   Video,
   Calendar,
-  Copy,
-  Check,
-  ShieldCheck,
-  Server,
   Keyboard,
-  Link as LinkIcon,
-  Sparkles,
 } from "lucide-react";
-import { formatMeetingCode, formatScheduleDisplay } from "@/lib/utils";
+import { formatScheduleDisplay } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
 export default function DashboardPage() {
@@ -34,7 +28,6 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isScheduleOpen, setIsScheduleOpen] = useState<boolean>(false);
   const [backendError, setBackendError] = useState<string | null>(null);
-  const [copiedPersonalLink, setCopiedPersonalLink] = useState(false);
 
   // Protected route: Redirect unauthenticated users to /login
   useEffect(() => {
@@ -56,7 +49,7 @@ export default function DashboardPage() {
       setRecentMeetings(recent);
     } catch (err: any) {
       setBackendError(
-        "Could not connect to the OrbitMeet backend service. Make sure FastAPI server is running."
+        "Unable to connect to conferencing service. Please check your connection."
       );
     } finally {
       setIsLoading(false);
@@ -68,18 +61,6 @@ export default function DashboardPage() {
       fetchMeetings();
     }
   }, [user, fetchMeetings]);
-
-  const handleCopyPersonalLink = () => {
-    if (typeof window !== "undefined") {
-      const origin = window.location.origin;
-      // Use user's personal meeting code or standard join url
-      const code = user?.id ? String(user.id).padStart(10, "0") : "8434294693";
-      const personalUrl = `${origin}/join?meeting=${code}`;
-      navigator.clipboard.writeText(personalUrl);
-      setCopiedPersonalLink(true);
-      setTimeout(() => setCopiedPersonalLink(false), 2000);
-    }
-  };
 
   if (isAuthLoading || (!user && !isAuthLoading)) {
     return (
@@ -94,7 +75,6 @@ export default function DashboardPage() {
   }
 
   const nextMeeting = upcomingMeetings[0];
-  const personalRoomCode = user?.id ? String(user.id).padStart(10, "0") : "8434294693";
 
   return (
     <div className="min-h-screen flex flex-col bg-app">
@@ -202,95 +182,9 @@ export default function DashboardPage() {
             </section>
           </div>
 
-          {/* Right Column: Contextual Room & Diagnostic Tools (4 cols) */}
+          {/* Right Column: Quick Shortcuts (4 cols) */}
           <div className="lg:col-span-4 space-y-5">
-            {/* 1. Personal Room & Quick Invite Card */}
-            <div className="rounded-xl border border-border bg-surface p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
-                  Personal Meeting Room
-                </span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#137333] bg-[#e6f4ea] px-2 py-0.5 rounded">
-                  <Sparkles className="h-3 w-3" /> Ready
-                </span>
-              </div>
-
-              <div className="space-y-1.5">
-                <p className="text-xs text-text-secondary leading-relaxed">
-                  Permanent link for your direct personal conferences and quick syncing:
-                </p>
-                <div className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-muted px-3 py-2">
-                  <span className="font-mono text-xs font-semibold text-text-primary">
-                    {formatMeetingCode(personalRoomCode)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleCopyPersonalLink}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#0e72ed] hover:text-[#0b5cdb] cursor-pointer"
-                  >
-                    {copiedPersonalLink ? (
-                      <>
-                        <Check className="h-3.5 w-3.5 text-green-600" />
-                        <span className="text-green-600">Copied</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3.5 w-3.5" />
-                        <span>Copy URL</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <Link href={`/meeting/${personalRoomCode}`}>
-                <Button variant="outline" size="sm" className="w-full text-xs font-semibold gap-1.5">
-                  <Video className="h-3.5 w-3.5 text-[#0e72ed]" />
-                  <span>Start in Personal Room</span>
-                </Button>
-              </Link>
-            </div>
-
-            {/* 2. Live Diagnostics & System Health */}
-            <div className="rounded-xl border border-border bg-surface p-5 shadow-xs space-y-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
-                System Diagnostics
-              </span>
-
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between py-1 border-b border-border-subtle">
-                  <span className="flex items-center gap-1.5 text-text-secondary">
-                    <Server className="h-3.5 w-3.5 text-text-muted" />
-                    <span>Realtime SFU:</span>
-                  </span>
-                  <span className="font-mono text-[11px] font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded">
-                    LiveKit Cloud
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between py-1 border-b border-border-subtle">
-                  <span className="flex items-center gap-1.5 text-text-secondary">
-                    <ShieldCheck className="h-3.5 w-3.5 text-text-muted" />
-                    <span>Backend Cluster:</span>
-                  </span>
-                  <span className="font-mono text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
-                    Railway Prod
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between py-1">
-                  <span className="flex items-center gap-1.5 text-text-secondary">
-                    <LinkIcon className="h-3.5 w-3.5 text-text-muted" />
-                    <span>Guest Access:</span>
-                  </span>
-                  <span className="font-mono text-[11px] font-semibold text-text-primary">
-                    Open (No auth req)
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* 3. In-Meeting Keyboard Shortcuts Card */}
+            {/* Quick Shortcuts Card */}
             <div className="rounded-xl border border-border bg-surface p-5 shadow-xs space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
@@ -300,22 +194,16 @@ export default function DashboardPage() {
               </div>
 
               <div className="divide-y divide-border-subtle text-xs text-text-secondary">
-                <div className="flex items-center justify-between py-1.5">
+                <div className="flex items-center justify-between py-2">
                   <span>Toggle Microphone</span>
-                  <kbd className="rounded border border-border bg-surface-muted px-1.5 py-0.5 font-mono text-[10px] font-semibold text-text-primary">
+                  <kbd className="rounded border border-border bg-surface-muted px-2 py-0.5 font-mono text-[11px] font-semibold text-text-primary shadow-2xs">
                     Alt + A
                   </kbd>
                 </div>
-                <div className="flex items-center justify-between py-1.5">
+                <div className="flex items-center justify-between py-2">
                   <span>Toggle Camera</span>
-                  <kbd className="rounded border border-border bg-surface-muted px-1.5 py-0.5 font-mono text-[10px] font-semibold text-text-primary">
+                  <kbd className="rounded border border-border bg-surface-muted px-2 py-0.5 font-mono text-[11px] font-semibold text-text-primary shadow-2xs">
                     Alt + V
-                  </kbd>
-                </div>
-                <div className="flex items-center justify-between py-1.5">
-                  <span>Toggle Screenshare</span>
-                  <kbd className="rounded border border-border bg-surface-muted px-1.5 py-0.5 font-mono text-[10px] font-semibold text-text-primary">
-                    Alt + S
                   </kbd>
                 </div>
               </div>

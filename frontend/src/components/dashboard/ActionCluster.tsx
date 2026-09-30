@@ -84,13 +84,13 @@ export const ActionCluster: React.FC<ActionClusterProps> = ({ onScheduleClick })
 
           <div className="mt-6 space-y-1">
             <h3 className="text-lg font-bold tracking-tight">New Meeting</h3>
-            <p className="text-xs text-white/80 leading-relaxed max-w-sm">
-              Launch a high-definition private conference room and invite participants with zero setup.
+            <p className="text-xs text-white/85 leading-relaxed max-w-sm">
+              Start an instant meeting and invite others.
             </p>
           </div>
 
           <div className="mt-5 flex items-center gap-1 text-xs font-semibold text-white/95 group-hover:translate-x-0.5 transition-transform">
-            <span>Start conference now</span>
+            <span>Start meeting</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </div>
         </button>
@@ -108,12 +108,12 @@ export const ActionCluster: React.FC<ActionClusterProps> = ({ onScheduleClick })
           <div className="my-3 space-y-0.5">
             <h4 className="text-sm font-bold text-text-primary">Join Meeting</h4>
             <p className="text-xs text-text-muted leading-relaxed">
-              Via 10-digit room code or invite link
+              Enter a meeting code or invite link.
             </p>
           </div>
 
           <span className="text-xs font-medium text-[#0e72ed] flex items-center gap-1">
-            Join room <ArrowRight className="h-3 w-3" />
+            Join meeting <ArrowRight className="h-3 w-3" />
           </span>
         </button>
 
@@ -130,12 +130,12 @@ export const ActionCluster: React.FC<ActionClusterProps> = ({ onScheduleClick })
           <div className="my-3 space-y-0.5">
             <h4 className="text-sm font-bold text-text-primary">Schedule</h4>
             <p className="text-xs text-text-muted leading-relaxed">
-              Plan ahead with calendar invite & agenda
+              Plan a meeting for later.
             </p>
           </div>
 
           <span className="text-xs font-medium text-text-secondary group-hover:text-text-primary flex items-center gap-1">
-            Plan session <ArrowRight className="h-3 w-3" />
+            Schedule meeting <ArrowRight className="h-3 w-3" />
           </span>
         </button>
       </div>
@@ -144,8 +144,8 @@ export const ActionCluster: React.FC<ActionClusterProps> = ({ onScheduleClick })
       <div className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-muted/60 px-4 py-2.5 text-xs text-text-secondary">
         <div className="flex items-center gap-2">
           <ScreenShare className="h-4 w-4 text-[#0e72ed]" />
-          <span className="font-medium text-text-primary">Direct Presentation:</span>
-          <span className="hidden sm:inline text-text-muted">Start an instant conference with screen sharing enabled</span>
+          <span className="font-medium text-text-primary">Share Screen:</span>
+          <span className="hidden sm:inline text-text-muted">Start a meeting with screen sharing enabled.</span>
         </div>
         <button
           type="button"

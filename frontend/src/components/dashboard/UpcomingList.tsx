@@ -68,14 +68,14 @@ export const UpcomingList: React.FC<UpcomingListProps> = ({
 
   if (meetings.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border bg-surface/50 p-8 text-center space-y-3">
-        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-surface-muted text-text-muted border border-border-subtle">
+      <div className="rounded-xl border border-dashed border-border bg-surface/50 p-5 text-center space-y-3">
+        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-surface-muted text-text-muted border border-border-subtle">
           <Calendar className="h-5 w-5" />
         </div>
         <div>
           <h4 className="text-sm font-semibold text-text-primary">No upcoming meetings</h4>
-          <p className="mt-1 text-xs text-text-secondary max-w-xs mx-auto">
-            Schedule a conference ahead of time to coordinate agendas and calendar invites.
+          <p className="mt-0.5 text-xs text-text-secondary max-w-xs mx-auto">
+            Schedule a meeting or start one instantly.
           </p>
         </div>
         {onScheduleClick && (
@@ -86,7 +86,7 @@ export const UpcomingList: React.FC<UpcomingListProps> = ({
             className="text-xs gap-1.5 shadow-xs"
           >
             <Plus className="h-3.5 w-3.5 text-[#0e72ed]" />
-            <span>Schedule a Meeting</span>
+            <span>Schedule a meeting</span>
           </Button>
         )}
       </div>

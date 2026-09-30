@@ -77,14 +77,14 @@ function JoinContent() {
         </Link>
         <h2 className="text-xl font-bold tracking-tight text-text-primary">Join a Meeting</h2>
         <p className="text-xs text-text-secondary">
-          Enter the 10-digit room code or paste an invitation link. Guests join freely without an account.
+          Enter a meeting code or invite link. Guests join freely without an account.
         </p>
       </div>
 
       {isCodeRecognized && (
         <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3.5 py-2 text-xs font-medium text-green-800">
           <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
-          <span>Valid 10-digit room format recognized</span>
+          <span>Meeting code recognized</span>
         </div>
       )}
 
@@ -121,7 +121,7 @@ function JoinContent() {
         <p className="text-xs text-text-muted">
           Need to host your own conference?{" "}
           <Link href="/" className="text-[#0e72ed] hover:underline font-semibold">
-            Start Instant Meeting
+            Start instant meeting
           </Link>
         </p>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Mic,
   MicOff,
@@ -57,6 +57,29 @@ export const MeetingToolbar: React.FC<MeetingToolbarProps> = ({
       console.warn("Screen share cancelled or failed:", err);
     }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target as HTMLElement)?.isContentEditable
+      ) {
+        return;
+      }
+
+      if (e.altKey && (e.key === "a" || e.key === "A" || e.code === "KeyA")) {
+        e.preventDefault();
+        toggleAudio();
+      } else if (e.altKey && (e.key === "v" || e.key === "V" || e.code === "KeyV")) {
+        e.preventDefault();
+        toggleVideo();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isAudioEnabled, isVideoEnabled]);
 
   const copyInviteLink = () => {
     const url =
