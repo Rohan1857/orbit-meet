@@ -1,7 +1,7 @@
 {
   "host_signup": {
     "passed": true,
-    "details": "Logged in as host_1790761559@orbitmeet.test"
+    "details": "Logged in as host_1790765389@orbitmeet.test"
   },
   "schedule_duration_numeric_input": {
     "passed": true,
@@ -17,7 +17,7 @@
   },
   "host_create_instant_meeting": {
     "passed": true,
-    "details": "Meeting code: 3205766004"
+    "details": "Meeting code: 6792218973"
   },
   "host_connected": {
     "passed": true,
