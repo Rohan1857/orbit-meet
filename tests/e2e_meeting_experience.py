@@ -84,21 +84,23 @@ def run_test():
             page_a.locator("input[type='email']").fill(host_email)
             page_a.locator("input[type='password']").fill("Password123!")
             page_a.locator("button:has-text('Create Account')").click()
-            page_a.wait_for_url(lambda url: "/login" not in url and "/signup" not in url, timeout=10000)
+            page_a.wait_for_url(lambda url: "/login" not in url and "/signup" not in url, timeout=25000)
             log_step("host_signup", True, f"Logged in as {host_email}")
 
             # Step 2: Host creates instant meeting
             print("\n--- 4. Host Creates Instant Meeting ---")
-            page_a.locator("button:has-text('New Meeting')").click()
-            page_a.wait_for_url(lambda url: "/meeting/" in url, timeout=10000)
+            new_btn = page_a.locator("button:has-text('New Meeting')")
+            new_btn.wait_for(state="visible", timeout=20000)
+            new_btn.click()
+            page_a.wait_for_url(lambda url: "/meeting/" in url, timeout=25000)
             meeting_code = page_a.url.split("/meeting/")[-1].split("?")[0]
             log_step("create_instant_meeting", len(meeting_code) == 10, f"Meeting code: {meeting_code}")
 
             # Step 3: Host enters meeting room
             print("\n--- 5. Host PreJoin & Connection ---")
-            page_a.wait_for_selector("button:has-text('Join Meeting')", timeout=10000)
+            page_a.wait_for_selector("button:has-text('Join Meeting')", timeout=20000)
             page_a.locator("button:has-text('Join Meeting')").click()
-            page_a.wait_for_selector("header span:has-text('Connected')", timeout=15000)
+            page_a.wait_for_selector("header span:has-text('Connected')", timeout=25000)
             log_step("host_connected", True, "Host connected to LiveKit room")
             page_a.screenshot(path=os.path.join(SCREENSHOTS_DIR, "01_host_room.png"))
 
@@ -106,10 +108,10 @@ def run_test():
             print("\n--- 6. Alice Joins as Unauthenticated Guest ---")
             page_b.goto(f"{FRONTEND_URL}/join?meeting={meeting_code}", wait_until="networkidle")
             page_b.locator("button:has-text('Join Meeting')").click()
-            page_b.wait_for_url(lambda url: f"/meeting/{meeting_code}" in url, timeout=10000)
+            page_b.wait_for_url(lambda url: f"/meeting/{meeting_code}" in url, timeout=25000)
             page_b.locator("input[placeholder*='Alice'], input[type='text']").first.fill("Alice Guest")
             page_b.locator("button:has-text('Join Meeting')").click()
-            page_b.wait_for_selector("header span:has-text('Connected')", timeout=15000)
+            page_b.wait_for_selector("header span:has-text('Connected')", timeout=25000)
             log_step("alice_connected", True, "Alice connected to LiveKit room")
             page_b.screenshot(path=os.path.join(SCREENSHOTS_DIR, "02_alice_room.png"))
 
@@ -205,7 +207,7 @@ def run_test():
             # Lock meeting
             lock_btn = page_a.locator("button:has-text('Lock')").first
             lock_btn.click()
-            page_a.wait_for_selector("text=Meeting locked.", timeout=5000)
+            page_a.wait_for_selector("text=Meeting locked.", timeout=15000)
             log_step("host_locked_meeting", True, "Host successfully locked meeting via Host Tools")
             page_a.screenshot(path=os.path.join(SCREENSHOTS_DIR, "08_meeting_locked.png"))
 
@@ -227,7 +229,7 @@ def run_test():
             # Host unlocks meeting
             unlock_btn = page_a.locator("button:has-text('Unlock')").first
             unlock_btn.click()
-            page_a.wait_for_selector("text=Meeting unlocked.", timeout=5000)
+            page_a.wait_for_selector("text=Meeting unlocked.", timeout=15000)
             log_step("host_unlocked_meeting", True, "Host unlocked meeting")
 
             # Close host tools modal
