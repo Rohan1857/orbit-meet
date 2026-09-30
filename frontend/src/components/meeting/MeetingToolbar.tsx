@@ -425,7 +425,10 @@ export const MeetingToolbar: React.FC<MeetingToolbarProps> = ({
             <div className="relative">
               <MessageSquare className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
               {unreadChatCount > 0 && (
-                <span className="absolute -top-1 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ef4444] px-1 text-[9px] font-bold text-white animate-pulse">
+                <span
+                  data-testid="unread-chat-badge"
+                  className="absolute -top-1 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ef4444] px-1 text-[9px] font-bold text-white animate-pulse"
+                >
                   {unreadChatCount > 99 ? "99+" : unreadChatCount}
                 </span>
               )}

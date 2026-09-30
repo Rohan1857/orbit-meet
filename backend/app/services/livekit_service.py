@@ -122,9 +122,24 @@ class LiveKitService:
             raise RuntimeError("LiveKit credentials not configured")
 
         async with api.LiveKitAPI(url, api_key, api_secret) as lk:
-            response = await lk.room.list_participants(
-                api.ListParticipantsRequest(room=room_name)
-            )
+            try:
+                response = await lk.room.list_participants(
+                    api.ListParticipantsRequest(room=room_name)
+                )
+            except Exception as e:
+                # If room is not currently active on LiveKit SFU, return clean success with 0 participants
+                if "not_found" in str(e).lower() or "does not exist" in str(e).lower():
+                    return {
+                        "status": "muted_all",
+                        "room": room_name,
+                        "muted_participants": 0,
+                        "skipped_participants": 0,
+                        "failed_participants": 0,
+                        "total_participants": 0,
+                        "detail": "Room has no active participants"
+                    }
+                raise
+
             muted_participants = 0
             skipped_participants = 0
             failed_participants = 0
@@ -134,10 +149,7 @@ class LiveKitService:
                 if host_identity and p.identity == host_identity:
                     skipped_participants += 1
                     continue
-                if p.permission and p.permission.room_admin:
-                    skipped_participants += 1
-                    continue
-                if p.identity.startswith("host_"):
+                if p.identity.startswith("host_") or getattr(p.permission, "room_admin", False):
                     skipped_participants += 1
                     continue
 

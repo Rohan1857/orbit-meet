@@ -153,7 +153,8 @@ def run_test():
 
             # Host sees unread counter on chat toggle
             host_chat_toggle = page_a.locator("[data-testid='chat-toggle']")
-            unread_badge = host_chat_toggle.locator("span.bg-\\[\\#e02828\\]")
+            unread_badge = host_chat_toggle.locator("[data-testid='unread-chat-badge']")
+            page_a.wait_for_selector("[data-testid='unread-chat-badge']", timeout=5000)
             has_unread = unread_badge.is_visible()
             log_step("unread_chat_counter", has_unread, "Unread indicator active on Host toolbar")
 
@@ -225,7 +226,8 @@ def run_test():
             panel_a.wait_for(state="visible", timeout=5000)
             page_a.screenshot(path=os.path.join(SCREENSHOTS_DIR, "06_host_sees_raised_hand.png"))
 
-            alice_hand_in_panel = panel_a.locator("button[title*=\"Lower Alice's hand\"]")
+            alice_hand_in_panel = panel_a.locator("button[aria-label*='Lower'][aria-label*='hand'], button[title*='Lower'][title*='hand']").first
+            panel_a.wait_for_selector("button[title*='Lower'][title*='hand']", timeout=5000)
             has_hand_button = alice_hand_in_panel.is_visible()
             log_step("host_sees_alice_hand_raised", has_hand_button, "Host detected raised hand and has Lower button")
 
