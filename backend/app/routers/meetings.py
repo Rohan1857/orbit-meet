@@ -102,12 +102,14 @@ def list_meetings(
 @router.get("/{meeting_code}", response_model=MeetingDetailResponse)
 def get_meeting(
     meeting_code: str,
+    current_user: Optional[User] = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     meeting = MeetingService.get_meeting_by_code(db, meeting_code)
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
-    res = format_meeting_response(meeting)
+    is_owner = bool(current_user and meeting.owner_user_id == current_user.id)
+    res = format_meeting_response(meeting, include_token=is_owner)
     res["active_participants_count"] = len([p for p in meeting.participants if not p.left_at])
     return res
 

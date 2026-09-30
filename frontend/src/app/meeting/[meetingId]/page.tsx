@@ -419,6 +419,8 @@ export default function MeetingRoomPage({ params }: PageProps) {
           if (savedToken) {
             setIsHost(true);
             setHostToken(savedToken);
+          } else if (user && data.owner_user_id === user.id) {
+            setIsHost(true);
           }
         }
       } catch (err: any) {

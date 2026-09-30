@@ -35,7 +35,6 @@ export const HostToolsModal: React.FC<HostToolsModalProps> = ({
   };
 
   const handleToggleLock = async () => {
-    if (!hostToken) return;
     setLoadingAction("lock");
     try {
       if (meeting.is_locked) {
@@ -55,10 +54,9 @@ export const HostToolsModal: React.FC<HostToolsModalProps> = ({
   };
 
   const handleMuteAll = async () => {
-    if (!hostToken) return;
     setLoadingAction("muteAll");
     try {
-      await api.muteAll(meeting.meeting_code, hostToken);
+      await api.muteAll(meeting.meeting_code, hostToken || "");
       showStatus("Muted all attendees.");
     } catch {
       showStatus("Failed to mute all attendees.");
@@ -68,7 +66,6 @@ export const HostToolsModal: React.FC<HostToolsModalProps> = ({
   };
 
   const handleToggleUnmutePerm = async () => {
-    if (!hostToken) return;
     setLoadingAction("permUnmute");
     const nextVal = !meeting.allow_participant_unmute;
     try {
@@ -87,7 +84,6 @@ export const HostToolsModal: React.FC<HostToolsModalProps> = ({
   };
 
   const handleToggleScreenSharePerm = async () => {
-    if (!hostToken) return;
     setLoadingAction("permScreen");
     const nextVal = !meeting.allow_participant_screen_share;
     try {
