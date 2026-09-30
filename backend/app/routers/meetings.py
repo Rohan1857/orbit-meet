@@ -26,6 +26,14 @@ from app.services.livekit_service import LiveKitService
 router = APIRouter(prefix="/api/meetings", tags=["meetings"])
 
 
+def _ensure_utc(dt: Optional[datetime.datetime]) -> Optional[datetime.datetime]:
+    if not dt:
+        return None
+    if not dt.tzinfo:
+        return dt.replace(tzinfo=datetime.timezone.utc)
+    return dt
+
+
 def format_meeting_response(meeting: Meeting, include_token: bool = False) -> dict:
     data = {
         "id": meeting.id,
@@ -34,7 +42,7 @@ def format_meeting_response(meeting: Meeting, include_token: bool = False) -> di
         "description": meeting.description,
         "host_name": meeting.host_name,
         "meeting_type": meeting.meeting_type,
-        "scheduled_at": meeting.scheduled_at,
+        "scheduled_at": _ensure_utc(meeting.scheduled_at),
         "duration_minutes": meeting.duration_minutes,
         "status": meeting.status,
         "owner_user_id": meeting.owner_user_id,
@@ -42,9 +50,9 @@ def format_meeting_response(meeting: Meeting, include_token: bool = False) -> di
         "is_locked": bool(getattr(meeting, "is_locked", False)),
         "allow_participant_unmute": bool(getattr(meeting, "allow_participant_unmute", True)),
         "allow_participant_screen_share": bool(getattr(meeting, "allow_participant_screen_share", True)),
-        "created_at": meeting.created_at,
-        "started_at": meeting.started_at,
-        "ended_at": meeting.ended_at,
+        "created_at": _ensure_utc(meeting.created_at),
+        "started_at": _ensure_utc(meeting.started_at),
+        "ended_at": _ensure_utc(meeting.ended_at),
     }
     if include_token:
         data["host_control_token"] = meeting.host_control_token

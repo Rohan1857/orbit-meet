@@ -90,10 +90,18 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
 
   const getInitialElapsed = () => {
     if (meeting.started_at) {
-      const startedMs = new Date(meeting.started_at).getTime();
+      let raw = String(meeting.started_at).trim();
+      // If datetime string lacks UTC timezone or offset indicator, append Z to ensure UTC parsing
+      if (!raw.endsWith("Z") && !/[+-]\d{2}:?\d{2}$/.test(raw)) {
+        raw += "Z";
+      }
+      const startedMs = new Date(raw).getTime();
       const nowMs = Date.now();
       const elapsed = Math.floor((nowMs - startedMs) / 1000);
-      return Math.max(0, elapsed);
+      if (isNaN(elapsed) || elapsed < 0 || elapsed > 86400 * 7) {
+        return 0;
+      }
+      return elapsed;
     }
     return 0;
   };
@@ -104,7 +112,7 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
   const [linkCopied, setLinkCopied] = useState(false);
 
   const remainingSeconds = Math.max(0, durationLimitSeconds - elapsedSeconds);
-  const isTimeExpired = elapsedSeconds >= durationLimitSeconds;
+  const isTimeExpired = elapsedSeconds >= durationLimitSeconds && elapsedSeconds > 0;
   const isNearExpiry = remainingSeconds <= 60 && remainingSeconds > 0;
 
   const handleQuickShare = () => {
