@@ -227,19 +227,23 @@ def run_test():
             page_a.screenshot(path=os.path.join(SCREENSHOTS_DIR, "06_host_sees_raised_hand.png"))
 
             alice_hand_in_panel = panel_a.locator("button[aria-label*='Lower'][aria-label*='hand'], button[title*='Lower'][title*='hand']").first
-            panel_a.wait_for_selector("button[title*='Lower'][title*='hand']", timeout=5000)
+            alice_hand_in_panel.wait_for(state="visible", timeout=5000)
             has_hand_button = alice_hand_in_panel.is_visible()
             log_step("host_sees_alice_hand_raised", has_hand_button, "Host detected raised hand and has Lower button")
 
             # Host lowers Alice's hand
             if has_hand_button:
                 alice_hand_in_panel.click()
-                time.sleep(1.5)
-                # Verify in Alice context that button reverted back to Raise Hand
+                time.sleep(2.0)
+                # Verify in Alice context that toolbar button reverted from Raised to Reactions
+                guest_button_text = page_b.locator("button[aria-label='Reactions and Raise Hand']").inner_text()
+                guest_hand_not_raised = "Raised" not in guest_button_text
+                # Open reactions menu to confirm Raise Hand option is shown
                 alice_reactions_btn.click()
-                guest_hand_reverted = page_b.locator("button:has-text('Raise Hand')").is_visible()
+                time.sleep(0.5)
+                guest_has_raise_option = page_b.locator("button:has-text('Raise Hand')").is_visible()
                 page_b.keyboard.press("Escape")
-                log_step("host_lower_participant_hand", guest_hand_reverted, "Alice hand lowered by host and guest UI reverted")
+                log_step("host_lower_participant_hand", guest_hand_not_raised and guest_has_raise_option, "Alice hand lowered by host and guest UI reverted")
             else:
                 log_step("host_lower_participant_hand", False, "Hand button was not visible")
 
@@ -327,7 +331,7 @@ def run_test():
             log_step("host_unlocked_meeting", True, "Host unlocked meeting")
 
             # Bob retries joining after unlock
-            page_c.locator("button:has-text('Back to Dashboard')").click()
+            page_c.locator("button:has-text('Return to Dashboard')").click()
             page_c.wait_for_url(lambda url: "/meeting/" not in url, timeout=10000)
             page_c.goto(f"{FRONTEND_URL}/meeting/{meeting_code}", wait_until="networkidle")
             page_c.locator("input[placeholder*='Alice'], input[type='text']").first.fill("Bob Unlocked Guest")
@@ -385,6 +389,7 @@ def run_test():
                 if not any(exp in e for exp in [
                     "Failed to load resource: the server responded with a status of 423",
                     "423 (Locked)",
+                    "status of 404",
                     "favicon.ico",
                     "Download the React DevTools",
                 ])

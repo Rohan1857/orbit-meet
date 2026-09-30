@@ -138,6 +138,11 @@ export const MeetingToolbar: React.FC<MeetingToolbarProps> = ({
         return;
       }
 
+      if (e.key === "Escape") {
+        setActiveMenu(null);
+        return;
+      }
+
       if (e.altKey && (e.key === "a" || e.key === "A" || e.code === "KeyA")) {
         e.preventDefault();
         toggleAudio();
