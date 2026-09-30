@@ -1,5 +1,6 @@
 import datetime
 import secrets
+from sqlalchemy import text
 from app.database import Base, SessionLocal, engine
 from app.models.meeting import Meeting
 from app.models.participant import ParticipantSession
@@ -7,6 +8,23 @@ from app.models.participant import ParticipantSession
 
 def seed_database():
     Base.metadata.create_all(bind=engine)
+    with engine.connect() as conn:
+        try:
+            res = conn.execute(text("PRAGMA table_info(meetings)"))
+            cols = [r[1] for r in res.fetchall()]
+            if cols:
+                if "owner_user_id" not in cols:
+                    conn.execute(text("ALTER TABLE meetings ADD COLUMN owner_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL"))
+                if "is_locked" not in cols:
+                    conn.execute(text("ALTER TABLE meetings ADD COLUMN is_locked BOOLEAN NOT NULL DEFAULT 0"))
+                if "allow_participant_unmute" not in cols:
+                    conn.execute(text("ALTER TABLE meetings ADD COLUMN allow_participant_unmute BOOLEAN NOT NULL DEFAULT 1"))
+                if "allow_participant_screen_share" not in cols:
+                    conn.execute(text("ALTER TABLE meetings ADD COLUMN allow_participant_screen_share BOOLEAN NOT NULL DEFAULT 1"))
+                conn.commit()
+        except Exception as e:
+            print(f"Seed migration check: {e}")
+
     db = SessionLocal()
     try:
         # Check if already seeded
