@@ -1,3 +1,4 @@
+import datetime
 import secrets
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Header
@@ -108,6 +109,14 @@ def get_meeting(
     meeting = MeetingService.get_meeting_by_code(db, meeting_code)
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
+    # Enforce duration limit if meeting is live and expired
+    now = datetime.datetime.now(datetime.timezone.utc)
+    if meeting.status == "live" and meeting.started_at and meeting.duration_minutes:
+        started = meeting.started_at if meeting.started_at.tzinfo else meeting.started_at.replace(tzinfo=datetime.timezone.utc)
+        if now > started + datetime.timedelta(minutes=meeting.duration_minutes):
+            MeetingService.end_meeting(db, meeting)
+            meeting.status = "ended"
+
     is_owner = bool(current_user and meeting.owner_user_id == current_user.id)
     res = format_meeting_response(meeting, include_token=is_owner)
     res["active_participants_count"] = len([p for p in meeting.participants if not p.left_at])
@@ -125,6 +134,17 @@ def join_meeting(
     meeting = MeetingService.get_meeting_by_code(db, meeting_code)
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    if meeting.status == "live" and meeting.started_at and meeting.duration_minutes:
+        started = meeting.started_at if meeting.started_at.tzinfo else meeting.started_at.replace(tzinfo=datetime.timezone.utc)
+        if now > started + datetime.timedelta(minutes=meeting.duration_minutes):
+            MeetingService.end_meeting(db, meeting)
+            raise HTTPException(
+                status_code=400,
+                detail="This meeting has ended because its scheduled duration has expired"
+            )
+
     if meeting.status == "ended":
         raise HTTPException(status_code=400, detail="This meeting has already ended")
 

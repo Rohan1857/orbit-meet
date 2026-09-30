@@ -84,9 +84,28 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
   const [raisedHands, setRaisedHands] = useState<Record<string, boolean>>({});
   const reactionTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
 
-  // Elapsed Timer
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  // Scheduled Duration Limit & Accurate Elapsed State
+  const durationLimitMinutes = meeting.duration_minutes || 45;
+  const durationLimitSeconds = durationLimitMinutes * 60;
+
+  const getInitialElapsed = () => {
+    if (meeting.started_at) {
+      const startedMs = new Date(meeting.started_at).getTime();
+      const nowMs = Date.now();
+      const elapsed = Math.floor((nowMs - startedMs) / 1000);
+      return Math.max(0, elapsed);
+    }
+    return 0;
+  };
+
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(getInitialElapsed);
+  const [isTimeExpiredOpen, setIsTimeExpiredOpen] = useState(false);
+  const [expiryCountdown, setExpiryCountdown] = useState(10);
   const [linkCopied, setLinkCopied] = useState(false);
+
+  const remainingSeconds = Math.max(0, durationLimitSeconds - elapsedSeconds);
+  const isTimeExpired = elapsedSeconds >= durationLimitSeconds;
+  const isNearExpiry = remainingSeconds <= 60 && remainingSeconds > 0;
 
   const handleQuickShare = () => {
     const inviteUrl =
@@ -103,6 +122,44 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Open conclusion modal when duration completes
+  useEffect(() => {
+    if (isTimeExpired && !isTimeExpiredOpen) {
+      setIsTimeExpiredOpen(true);
+    }
+  }, [isTimeExpired, isTimeExpiredOpen]);
+
+  const handleAutoConclude = useCallback(async () => {
+    if (isHost && hostToken) {
+      try {
+        await api.endMeeting(meeting.meeting_code, hostToken);
+      } catch (e) {
+        console.warn("Failed to end meeting on expiry:", e);
+      }
+    }
+    if (room) {
+      try {
+        await room.disconnect();
+      } catch (e) {
+        console.warn("Error disconnecting room on expiry:", e);
+      }
+    }
+    window.location.href = `/?expired=true&duration=${durationLimitMinutes}`;
+  }, [isHost, hostToken, meeting.meeting_code, room, durationLimitMinutes]);
+
+  // Once modal is open, countdown from 10 to 0 and auto-conclude
+  useEffect(() => {
+    if (!isTimeExpiredOpen) return;
+    if (expiryCountdown <= 0) {
+      handleAutoConclude();
+      return;
+    }
+    const cd = setInterval(() => {
+      setExpiryCountdown((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(cd);
+  }, [isTimeExpiredOpen, expiryCountdown, handleAutoConclude]);
 
   const formatTimer = (totalSeconds: number) => {
     const hrs = Math.floor(totalSeconds / 3600);
@@ -401,11 +458,36 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Meeting Elapsed Timer */}
-          <div className="flex items-center gap-1.5 text-[#9ba1b0] bg-[#1e2026] px-2.5 py-1 rounded-md text-[11px] font-mono">
-            <Clock className="h-3 w-3 text-[#64748b]" />
-            <span>{formatTimer(elapsedSeconds)}</span>
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Meeting Elapsed & Remaining Duration Timer */}
+          <div
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono transition-colors select-none ${
+              isTimeExpired
+                ? "bg-red-950/60 text-red-400 border border-red-800 animate-pulse font-bold"
+                : isNearExpiry
+                ? "bg-amber-950/50 text-amber-400 border border-amber-800/60 animate-pulse font-semibold"
+                : "text-[#9ba1b0] bg-[#1e2026]"
+            }`}
+            title={`Scheduled duration: ${durationLimitMinutes} min`}
+          >
+            <Clock
+              className={`h-3 w-3 ${
+                isTimeExpired
+                  ? "text-red-400"
+                  : isNearExpiry
+                  ? "text-amber-400"
+                  : "text-[#64748b]"
+              }`}
+            />
+            {isTimeExpired ? (
+              <span>Time Expired ({formatTimer(durationLimitSeconds)})</span>
+            ) : isNearExpiry ? (
+              <span>Ending in {remainingSeconds}s</span>
+            ) : (
+              <span>
+                {formatTimer(elapsedSeconds)} / {formatTimer(durationLimitSeconds)}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-1.5 text-[#4ade80] text-[11px] font-medium bg-[#1e2e24] px-2 py-0.5 rounded">
@@ -461,6 +543,30 @@ const ActiveMeetingRoomContent: React.FC<RoomContentProps> = ({
         onMeetingUpdated={onMeetingUpdated}
         onBroadcastPermissions={handleBroadcastPermissions}
       />
+
+      {/* Scheduled Duration Limit Expiry Dialog */}
+      {isTimeExpiredOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-xl border border-red-900/60 bg-[#1a1b20] p-6 text-center text-white space-y-4 shadow-2xl animate-in zoom-in-95 duration-150">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-900/30 text-red-400 border border-red-700/50">
+              <Clock className="h-6 w-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-white">Scheduled Time Limit Reached</h3>
+              <p className="text-xs text-[#9ba1b0] leading-relaxed">
+                This meeting was scheduled for <span className="font-semibold text-white">{durationLimitMinutes} minutes</span> and the allocated duration has completed.
+              </p>
+            </div>
+            <div className="rounded-lg bg-[#252830] p-3 text-xs text-[#cbd5e1] border border-[#34394a]">
+              <span>Auto-closing meeting in </span>
+              <span className="font-bold font-mono text-red-400 text-sm">{expiryCountdown}s</span>
+            </div>
+            <Button variant="danger" size="md" onClick={handleAutoConclude} className="w-full font-semibold text-xs">
+              {isHost ? "Conclude Meeting for All" : "Leave Meeting"}
+            </Button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

@@ -15,6 +15,7 @@ import {
   Video,
   Calendar,
   Keyboard,
+  Clock,
 } from "lucide-react";
 import { formatScheduleDisplay } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -28,6 +29,16 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isScheduleOpen, setIsScheduleOpen] = useState<boolean>(false);
   const [backendError, setBackendError] = useState<string | null>(null);
+  const [expiredBanner, setExpiredBanner] = useState<{ duration?: string } | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("expired") === "true") {
+        setExpiredBanner({ duration: params.get("duration") || undefined });
+      }
+    }
+  }, []);
 
   // Protected route: Redirect unauthenticated users to /login
   useEffect(() => {
@@ -92,6 +103,27 @@ export default function DashboardPage() {
             >
               Retry Connection
             </Button>
+          </div>
+        )}
+
+        {/* Scheduled Duration Limit Expiry Banner */}
+        {expiredBanner && (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200 flex items-center justify-between shadow-xs">
+            <div className="flex items-center gap-3">
+              <Clock className="h-5 w-5 text-amber-400 shrink-0" />
+              <div>
+                <p className="font-semibold text-white">Meeting Concluded</p>
+                <p className="text-xs text-amber-300/80">
+                  The scheduled meeting duration{expiredBanner.duration ? ` (${expiredBanner.duration} mins)` : ""} has completed and the session has ended.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setExpiredBanner(null)}
+              className="text-amber-400 hover:text-white text-xs font-semibold px-2 py-1 rounded hover:bg-amber-500/20 transition-colors"
+            >
+              Dismiss
+            </button>
           </div>
         )}
 

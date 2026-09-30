@@ -134,3 +134,37 @@ def test_join_meeting_and_token_issuance(client, auth_headers):
         json={"participant_identity": data["participant_identity"]}
     )
     assert leave_res.status_code == 200
+
+
+def test_meeting_duration_limit_expiry(client, auth_headers, db_session):
+    from app.models.meeting import Meeting
+
+    # Create meeting with 2-minute duration
+    res = client.post(
+        "/api/meetings/instant",
+        json={"title": "2 Min Test Meeting"},
+        headers=auth_headers
+    )
+    assert res.status_code == 201
+    meeting_code = res.json()["meeting_code"]
+
+    # Manually backdate started_at by 3 minutes and set duration_minutes=2
+    meeting = db_session.query(Meeting).filter(Meeting.meeting_code == meeting_code).first()
+    assert meeting is not None
+    meeting.duration_minutes = 2
+    meeting.status = "live"
+    meeting.started_at = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=3)
+    db_session.commit()
+
+    # Querying get_meeting should detect expired duration and auto-end meeting
+    get_res = client.get(f"/api/meetings/{meeting_code}", headers=auth_headers)
+    assert get_res.status_code == 200
+    assert get_res.json()["status"] == "ended"
+
+    # Joining should reject with 400
+    join_res = client.post(
+        f"/api/meetings/{meeting_code}/join",
+        json={"display_name": "Late Joiner", "role": "participant"}
+    )
+    assert join_res.status_code == 400
+    assert "ended" in join_res.json()["detail"].lower()
