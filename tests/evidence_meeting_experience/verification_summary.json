@@ -1,0 +1,62 @@
+{
+  "host_signup": {
+    "passed": true,
+    "details": "Logged in as host_1790761559@orbitmeet.test"
+  },
+  "schedule_duration_numeric_input": {
+    "passed": true,
+    "details": "Found numeric duration input with min=2 max=90"
+  },
+  "schedule_duration_presets": {
+    "passed": true,
+    "details": "Found quick preset buttons including 90m"
+  },
+  "schedule_manual_2_min_saved": {
+    "passed": true,
+    "details": "Confirmation text: Duration: 2 minutes"
+  },
+  "host_create_instant_meeting": {
+    "passed": true,
+    "details": "Meeting code: 3205766004"
+  },
+  "host_connected": {
+    "passed": true,
+    "details": "Host in room with verified LiveKit session"
+  },
+  "header_share_link_button": {
+    "passed": true,
+    "details": "Quick Share Link button works and displays 'Copied!'"
+  },
+  "alice_connected": {
+    "passed": true,
+    "details": "Alice connected to meeting"
+  },
+  "direct_message_received": {
+    "passed": true,
+    "details": "Alice received private DM with purple Direct Message pill"
+  },
+  "pin_video_tile": {
+    "passed": true,
+    "details": "Video tile pinned to spotlight stage with Pinned status"
+  },
+  "unpin_video_tile": {
+    "passed": true,
+    "details": "Video tile unpinned back to regular grid"
+  },
+  "mobile_leave_button_accessible": {
+    "passed": true,
+    "details": "Mobile Leave button bounding box: x=298.125, w=68.875 (viewport=375)"
+  },
+  "mobile_camera_vertical_aspect": {
+    "passed": true,
+    "details": "Tile container has aspect-[3/4]: True"
+  },
+  "instant_host_disallow_muting": {
+    "passed": true,
+    "details": "Alice's microphone was instantly muted and locked with 'Locked' badge"
+  },
+  "instant_host_reallow_unmute": {
+    "passed": true,
+    "details": "Alice's microphone was instantly unlocked when host allowed unmuting"
+  }
+}

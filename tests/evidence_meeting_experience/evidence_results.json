@@ -6,11 +6,11 @@
     },
     "host_signup": {
       "passed": true,
-      "details": "Logged in as host_1790758723@orbitmeet.test"
+      "details": "Logged in as host_1790761663@orbitmeet.test"
     },
     "create_instant_meeting": {
       "passed": true,
-      "details": "Meeting code: 1650700864"
+      "details": "Meeting code: 1909584716"
     },
     "host_connected": {
       "passed": true,
@@ -40,82 +40,22 @@
       "passed": true,
       "details": "Alice received Host's reply"
     },
-    "reaction_sent_and_displayed": {
-      "passed": true,
-      "details": "Alice saw host's \ud83d\udc4f reaction"
-    },
-    "reaction_auto_dismissed": {
-      "passed": true,
-      "details": "Reaction auto-dismissed after display timeout"
-    },
-    "alice_raise_hand_button_toggled": {
-      "passed": true,
-      "details": "Alice button toggled to Lower Hand"
-    },
-    "host_sees_alice_hand_raised": {
-      "passed": true,
-      "details": "Host detected raised hand and has Lower button"
-    },
-    "host_lower_participant_hand": {
-      "passed": true,
-      "details": "Alice hand lowered by host and guest UI reverted"
-    },
-    "single_mute_real_track_state": {
-      "passed": true,
-      "details": "Alice LiveKit audio track publication muted=true confirmed by client"
-    },
-    "mute_all_real_track_states": {
-      "passed": true,
-      "details": "Alice muted=True, Host mic intact=True"
-    },
-    "host_locked_meeting": {
-      "passed": true,
-      "details": "Host successfully locked meeting via Host Tools"
-    },
-    "locked_room_rejection": {
-      "passed": true,
-      "details": "Third guest rejected from locked room (HTTP 423)"
-    },
-    "host_unlocked_meeting": {
-      "passed": true,
-      "details": "Host unlocked meeting"
-    },
-    "bob_join_after_unlock": {
-      "passed": true,
-      "details": "Bob connected after host unlocked meeting"
-    },
-    "microphone_device_menu": {
-      "passed": true,
-      "details": "Microphone device dropdown opened"
-    },
-    "shortcuts_modal": {
-      "passed": true,
-      "details": "Keyboard shortcuts modal rendered Alt+A, Alt+V, Alt+H"
-    },
-    "host_end_meeting_for_all": {
-      "passed": true,
-      "details": "Host ended meeting cleanly"
-    },
-    "strict_console_health_gate": {
-      "passed": true,
-      "details": "Unexpected console errors: 0"
-    },
-    "strict_network_health_gate": {
-      "passed": true,
-      "details": "Unexpected network errors: 0"
+    "e2e_suite_exception": {
+      "passed": false,
+      "details": "Locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(\"button[title='\ud83d\udc4f']\")\n    - locator resolved to <button title=\"\ud83d\udc4f\" class=\"p-1.5 rounded-md hover:bg-[#252830] text-xl transition-transform hover:scale-125\">\ud83d\udc4f</button>\n  - attempting click action\n    2 \u00d7 waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class=\"flex-1 w-full flex items-center justify-center overflow-y-auto\">\u2026</div> from <div class=\"flex-1 relative overflow-hidden bg-[#111215]\">\u2026</div> subtree intercepts pointer events\n    - retrying click action\n    - waiting 20ms\n    2 \u00d7 waiting for element to be visible, enabled and stable\n      - element is visible, enabled and stable\n      - scrolling into view if needed\n      - done scrolling\n      - <div class=\"flex-1 w-full flex items-center justify-center overflow-y-auto\">\u2026</div> from <div class=\"flex-1 relative overflow-hidden bg-[#111215]\">\u2026</div> subtree intercepts pointer events\n    - retrying click action\n      - waiting 100ms\n    53 \u00d7 waiting for element to be visible, enabled and stable\n       - element is visible, enabled and stable\n       - scrolling into view if needed\n       - done scrolling\n       - <div class=\"flex-1 w-full flex items-center justify-center overflow-y-auto\">\u2026</div> from <div class=\"flex-1 relative overflow-hidden bg-[#111215]\">\u2026</div> subtree intercepts pointer events\n     - retrying click action\n       - waiting 500ms\n"
     }
   },
   "console_logs_host": [],
   "console_logs_participant": [],
-  "console_logs_third_guest": [
-    "[error] Failed to load resource: the server responded with a status of 423 ()"
-  ],
+  "console_logs_third_guest": [],
   "network_errors_host": [
-    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_723162_658625&cas=R5X%2BX4MYnEDQWc0CK3tJPJp0r%2B41s2WrD%2FonP4hhwkE - net::ERR_ABORTED",
-    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_723178_49716&cas=XSgGvVU74ficIptiGm09IWuPvTkg0tMD5Okz%2Be07XLE - net::ERR_ABORTED",
-    "GET https://orbitmeet-nu.vercel.app/meeting/1650700864?_rsc=ZmCQ44b92m4mXe_R - net::ERR_ABORTED"
+    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_663368_508955&cas=5Wg4NOKdFOSq2r8mI6zgHIkc8csptW3xFo3Tij0HKys - net::ERR_ABORTED",
+    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_663383_766841&cas=zXrcUkZXW%2Fp7%2BIW0LWsU8XOgkSW0XFDpOYTjGN1PHlY - net::ERR_ABORTED",
+    "GET https://orbitmeet-nu.vercel.app/meeting/1909584716?_rsc=ZmCQ44b92m4mXe_R - net::ERR_ABORTED"
   ],
-  "network_errors_participant": [],
+  "network_errors_participant": [
+    "GET https://orbitmeet-nu.vercel.app/meeting/1909584716?_rsc=a87G1evOvoS83bya - net::ERR_ABORTED"
+  ],
   "network_errors_third_guest": [],
   "unexpected_console_errors": [],
   "unexpected_network_errors": []

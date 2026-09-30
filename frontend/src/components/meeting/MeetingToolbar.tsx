@@ -268,7 +268,7 @@ export const MeetingToolbar: React.FC<MeetingToolbarProps> = ({
         </div>
 
         {/* Center: Controls Bar */}
-        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar py-1 max-w-[calc(100vw-110px)] sm:max-w-none">
+        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto sm:overflow-visible no-scrollbar py-1 max-w-[calc(100vw-110px)] sm:max-w-none relative z-40">
           {/* 1. Microphone Toggle + Device Selector */}
           <div className="relative flex items-center shrink-0">
             <button
@@ -498,7 +498,7 @@ export const MeetingToolbar: React.FC<MeetingToolbarProps> = ({
 
             {/* Reactions Popover */}
             {activeMenu === "reactions" && (
-              <div className="absolute bottom-16 -left-12 sm:left-1/2 sm:-translate-x-1/2 w-56 rounded-lg border border-[#2b2f3a] bg-[#1a1b20] p-2.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute bottom-16 -left-12 sm:left-1/2 sm:-translate-x-1/2 w-56 rounded-lg border border-[#2b2f3a] bg-[#1a1b20] p-2.5 shadow-2xl z-[100] animate-in fade-in zoom-in-95 duration-100">
                 <p className="text-[10px] font-semibold text-[#8f96a3] uppercase tracking-wider mb-2 px-1">
                   Reactions
                 </p>
