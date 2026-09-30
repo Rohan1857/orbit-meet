@@ -46,7 +46,7 @@ export const RecentList: React.FC<RecentListProps> = ({ meetings, isLoading }) =
 
   if (meetings.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border bg-surface/50 p-5 text-center space-y-2">
+      <div className="rounded-xl border border-dashed border-border bg-surface p-5 text-center space-y-2">
         <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-surface-muted text-text-muted border border-border-subtle">
           <History className="h-4 w-4" />
         </div>

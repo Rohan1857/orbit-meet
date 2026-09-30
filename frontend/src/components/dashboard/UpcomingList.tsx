@@ -68,7 +68,7 @@ export const UpcomingList: React.FC<UpcomingListProps> = ({
 
   if (meetings.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border bg-surface/50 p-5 text-center space-y-3">
+      <div className="rounded-xl border border-dashed border-border bg-surface p-5 text-center space-y-3">
         <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-surface-muted text-text-muted border border-border-subtle">
           <Calendar className="h-5 w-5" />
         </div>
