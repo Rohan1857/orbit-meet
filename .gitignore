@@ -62,3 +62,6 @@ test-results/
 Thumbs.db
 *.swp
 *.swo
+
+# Agents & Local Configs
+.agents/

@@ -6,23 +6,23 @@
     },
     "host_registration_and_login": {
       "passed": true,
-      "details": "Host registered and logged in as host_e2e_1790747679@orbitmeet.test"
+      "details": "Host registered and logged in as host_e2e_1790751369@orbitmeet.test"
     },
     "create_instant_meeting": {
       "passed": true,
-      "details": "Code: 3592731530"
+      "details": "Code: 3898904142"
     },
     "host_livekit_connection": {
       "passed": true,
-      "details": "Host connected to room 3592731530"
+      "details": "Host connected to room 3898904142"
     },
     "guest_join_no_login_redirect": {
       "passed": true,
-      "details": "Guest stayed on https://orbitmeet-nu.vercel.app/join?meeting=3592731530 without auth redirect"
+      "details": "Guest stayed on https://orbitmeet-nu.vercel.app/join?meeting=3898904142 without auth redirect"
     },
     "participant_livekit_connection": {
       "passed": true,
-      "details": "Alice connected to room 3592731530"
+      "details": "Alice connected to room 3898904142"
     },
     "host_sees_alice_videotile": {
       "passed": true,
@@ -102,13 +102,19 @@
     "[error] Failed to load resource: the server responded with a status of 404 ()"
   ],
   "console_logs_participant": [
+    "[error] Failed to load resource: the server responded with a status of 404 ()",
+    "[error] DataChannel error on lossy: User-Initiated Abort, reason= {room: 3898904142, roomID: RM_BDkgv8xdLbdr, participant: user_aliceevaluator_b4cfa7e5, participantID: PA_SmrNSwg3rHXi, error: OperationError: User-Initiated Abort, reason=}",
+    "[error] publisher data channel 'LOSSY' closed unexpectedly {room: 3898904142, roomID: RM_BDkgv8xdLbdr, participant: user_aliceevaluator_b4cfa7e5, participantID: PA_SmrNSwg3rHXi}",
+    "[error] DataChannel error on reliable: User-Initiated Abort, reason= {room: 3898904142, roomID: RM_BDkgv8xdLbdr, participant: user_aliceevaluator_b4cfa7e5, participantID: PA_SmrNSwg3rHXi, error: OperationError: User-Initiated Abort, reason=}",
+    "[error] publisher data channel 'RELIABLE' closed unexpectedly {room: 3898904142, roomID: RM_BDkgv8xdLbdr, participant: user_aliceevaluator_b4cfa7e5, participantID: PA_SmrNSwg3rHXi}",
+    "[error] DataChannel error on lossy: User-Initiated Abort, reason= {room: 3898904142, roomID: RM_BDkgv8xdLbdr, participant: user_aliceevaluator_b4cfa7e5, participantID: PA_SmrNSwg3rHXi, error: OperationError: User-Initiated Abort, reason=}",
+    "[error] publisher data channel 'DATA_TRACK_LOSSY' closed unexpectedly {room: 3898904142, roomID: RM_BDkgv8xdLbdr, participant: user_aliceevaluator_b4cfa7e5, participantID: PA_SmrNSwg3rHXi}",
     "[error] Failed to load resource: the server responded with a status of 404 ()"
   ],
   "network_errors_host": [
-    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_679960_408636&cas=zsN35rAkmkDFmjHX2ErZOSJJGSaT7%2FxYWVN%2FrvQuuCE - net::ERR_ABORTED",
-    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_679976_30496&cas=5B9nbcU%2FL4HoEcZ4ZBySLiq6GN5EwgEgIXEG6Z8Fmls - net::ERR_ABORTED"
+    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_369423_687928&cas=wx4o%2FbFwax%2F4F%2BEA%2BTTxp8e8RxyABLzG4MSKnkdyqfM - net::ERR_ABORTED",
+    "GET https://accounts.google.com/gsi/button?theme=outline&size=large&text=signup_with&shape=rectangular&logo_alignment=left&width=320&is_fedcm_supported=true&client_id=509214529533-kcr91pf5u4fm20qhoe7rhn3mtqjspcbk.apps.googleusercontent.com&iframe_id=gsi_369440_246480&cas=%2Bp0i5htNGg3P%2FSF0tZpNBrXJXezpmtYwxULNG6om8AE - net::ERR_ABORTED",
+    "GET https://orbitmeet-nu.vercel.app/meeting/3898904142?_rsc=ZmCQ44b92m4mXe_R - net::ERR_ABORTED"
   ],
-  "network_errors_participant": [
-    "GET https://orbitmeet-nu.vercel.app/meeting/3592731530?_rsc=a87G1evOvoS83bya - net::ERR_ABORTED"
-  ]
+  "network_errors_participant": []
 }

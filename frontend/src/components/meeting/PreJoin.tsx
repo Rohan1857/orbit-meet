@@ -2,9 +2,19 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Mic, MicOff, Video as VideoIcon, VideoOff, ShieldCheck, User } from "lucide-react";
+import {
+  Mic,
+  MicOff,
+  Video as VideoIcon,
+  VideoOff,
+  ShieldCheck,
+  User,
+  Copy,
+  Check,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { Meeting } from "@/types";
 import { formatMeetingCode } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -35,6 +45,7 @@ export const PreJoin: React.FC<PreJoinProps> = ({ meeting, isHost, onJoin }) => 
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const [permissionError, setPermissionError] = useState<string | null>(null);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -71,7 +82,7 @@ export const PreJoin: React.FC<PreJoinProps> = ({ meeting, isHost, onJoin }) => 
         } catch {
           if (active) {
             console.warn("Media devices not accessible or permission denied:", err);
-            setPermissionError("Camera/Microphone access not available or denied.");
+            setPermissionError("Camera and microphone access unavailable or denied by browser.");
             setVideoEnabled(false);
             setAudioEnabled(false);
           }
@@ -102,6 +113,12 @@ export const PreJoin: React.FC<PreJoinProps> = ({ meeting, isHost, onJoin }) => 
     }
   }, [audioEnabled, mediaStream]);
 
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(meeting.meeting_code);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!displayName.trim()) return;
@@ -118,25 +135,49 @@ export const PreJoin: React.FC<PreJoinProps> = ({ meeting, isHost, onJoin }) => 
     });
   };
 
+  const initials = displayName.trim()
+    ? displayName.trim().slice(0, 2).toUpperCase()
+    : "ME";
+
   return (
-    <div className="w-full max-w-2xl rounded-xl border border-[#2a2d36] bg-[#1a1b20] p-6 sm:p-8 text-white shadow-2xl space-y-6">
-      <div className="text-center space-y-1">
-        <h2 className="text-xl font-bold tracking-tight">{meeting.title}</h2>
-        <div className="flex items-center justify-center gap-2 text-xs text-[#9ba1b0]">
-          <span>Meeting ID: {formatMeetingCode(meeting.meeting_code)}</span>
-          {isHost && (
-            <>
-              <span>•</span>
-              <span className="flex items-center gap-1 text-[#fbc02d]">
-                <ShieldCheck className="h-3.5 w-3.5" /> Host
+    <div className="w-full max-w-2xl rounded-2xl border border-[#272a34] bg-[#16181f] p-6 sm:p-8 text-white shadow-2xl space-y-6">
+      {/* Meeting Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#272a34] pb-5">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-bold tracking-tight text-white">{meeting.title}</h2>
+            {isHost && (
+              <span className="inline-flex items-center gap-1 rounded bg-[#fbc02d]/20 px-2 py-0.5 text-[11px] font-bold text-[#fbc02d] uppercase">
+                <ShieldCheck className="h-3 w-3" /> Host
               </span>
+            )}
+          </div>
+          <p className="text-xs text-[#9ba1b0]">
+            Hosted by <strong className="text-white">{meeting.host_name || "Host"}</strong>
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleCopyCode}
+          className="inline-flex items-center gap-1.5 self-start sm:self-center rounded-lg border border-[#2f3340] bg-[#1e212b] px-3 py-1.5 text-xs font-mono font-medium text-[#c5c9d6] hover:bg-[#282c3a] hover:text-white transition-colors cursor-pointer"
+        >
+          {copiedCode ? (
+            <>
+              <Check className="h-3.5 w-3.5 text-green-400" />
+              <span className="text-green-400 font-sans">Copied ID</span>
+            </>
+          ) : (
+            <>
+              <Copy className="h-3.5 w-3.5 text-[#9ba1b0]" />
+              <span>ID: {formatMeetingCode(meeting.meeting_code)}</span>
             </>
           )}
-        </div>
+        </button>
       </div>
 
       {/* Video Preview Box */}
-      <div className="relative aspect-video w-full rounded-lg bg-[#111215] border border-[#262930] overflow-hidden flex items-center justify-center shadow-inner">
+      <div className="relative aspect-video w-full rounded-xl bg-[#0f1014] border border-[#272a34] overflow-hidden flex items-center justify-center shadow-inner">
         {videoEnabled && !permissionError ? (
           <video
             ref={videoRef}
@@ -146,21 +187,23 @@ export const PreJoin: React.FC<PreJoinProps> = ({ meeting, isHost, onJoin }) => 
             className="h-full w-full object-cover -scale-x-100"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center space-y-2 text-[#6c7280]">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#262932] text-xl font-bold text-white">
-              {displayName ? displayName.slice(0, 2).toUpperCase() : <User className="h-8 w-8 text-[#9ba1b0]" />}
+          <div className="flex flex-col items-center justify-center space-y-3">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#242834] text-2xl font-bold text-white shadow-md border border-[#34394a]">
+              {initials}
             </div>
-            <span className="text-xs">Camera is off</span>
+            <span className="text-xs font-medium text-[#7d8496]">Camera is off</span>
           </div>
         )}
 
-        {/* Floating Device Controls */}
-        <div className="absolute bottom-4 flex items-center gap-3">
+        {/* Floating Device Controls Overlay */}
+        <div className="absolute bottom-4 flex items-center gap-3 bg-[#111318]/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 shadow-lg">
           <button
             type="button"
             onClick={() => setAudioEnabled(!audioEnabled)}
-            className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
-              audioEnabled ? "bg-[#2b2e38] text-white hover:bg-[#383c49]" : "bg-[#e02828] text-white"
+            className={`flex h-10 w-10 items-center justify-center rounded-full transition-all cursor-pointer ${
+              audioEnabled
+                ? "bg-[#272b36] text-white hover:bg-[#343948]"
+                : "bg-[#e53935] text-white hover:bg-[#d32f2f]"
             }`}
             title={audioEnabled ? "Mute Microphone" : "Unmute Microphone"}
           >
@@ -170,8 +213,10 @@ export const PreJoin: React.FC<PreJoinProps> = ({ meeting, isHost, onJoin }) => 
           <button
             type="button"
             onClick={() => setVideoEnabled(!videoEnabled)}
-            className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
-              videoEnabled ? "bg-[#2b2e38] text-white hover:bg-[#383c49]" : "bg-[#e02828] text-white"
+            className={`flex h-10 w-10 items-center justify-center rounded-full transition-all cursor-pointer ${
+              videoEnabled
+                ? "bg-[#272b36] text-white hover:bg-[#343948]"
+                : "bg-[#e53935] text-white hover:bg-[#d32f2f]"
             }`}
             title={videoEnabled ? "Stop Camera" : "Start Camera"}
           >
@@ -181,29 +226,36 @@ export const PreJoin: React.FC<PreJoinProps> = ({ meeting, isHost, onJoin }) => 
       </div>
 
       {permissionError && (
-        <p className="text-center text-xs text-[#f87171]">{permissionError}</p>
+        <p className="text-center text-xs font-medium text-[#f87171]">{permissionError}</p>
       )}
 
-      {/* Name and Join action */}
+      {/* Name and Join Action Form */}
       <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-[#9ba1b0] mb-1.5">
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold uppercase tracking-wider text-[#9ba1b0]">
             Your Display Name
           </label>
-          <input
-            type="text"
-            className="w-full h-10 rounded-md border border-[#3a3f4d] bg-[#252830] px-3 py-2 text-sm text-white placeholder:text-[#6c7280] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0e72ed]"
-            placeholder="e.g. Rohan, Alice, Ayan..."
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            required
-            autoFocus
-          />
+          <div className="relative">
+            <input
+              type="text"
+              className="w-full h-11 rounded-lg border border-[#34394a] bg-[#1e212b] px-3.5 py-2 text-sm text-white placeholder:text-[#6c7280] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0e72ed]"
+              placeholder="e.g. Rohan Sharma"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              required
+              autoFocus
+            />
+            {user && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-green-400 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">
+                Verified
+              </span>
+            )}
+          </div>
         </div>
 
         <Button
           type="submit"
-          className="w-full h-11 text-base font-semibold shadow-xs"
+          className="w-full h-11 text-sm font-bold shadow-md tracking-tight"
           disabled={!displayName.trim()}
         >
           Join Meeting

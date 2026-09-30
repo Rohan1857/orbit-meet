@@ -140,13 +140,16 @@ export const MeetingToolbar: React.FC<MeetingToolbarProps> = ({
 
           {/* 4. Participants Panel Toggle */}
           <button
+            type="button"
             onClick={onToggleParticipants}
-            className={`flex flex-col items-center justify-center w-14 sm:w-16 h-12 rounded-md transition-colors relative ${
+            className={`flex flex-col items-center justify-center w-14 sm:w-16 h-12 rounded-md transition-colors relative cursor-pointer ${
               isParticipantsOpen
                 ? "bg-[#252830] text-[#0e72ed]"
                 : "text-[#a0a6b5] hover:bg-[#252830] hover:text-white"
             }`}
             title="Participants"
+            aria-label="Participants"
+            data-testid="participants-toggle"
           >
             <div className="relative">
               <Users className="h-5 w-5" />
@@ -155,7 +158,7 @@ export const MeetingToolbar: React.FC<MeetingToolbarProps> = ({
               </span>
             </div>
             <span className="text-[11px] mt-0.5 font-medium hidden sm:inline-block">
-              Attendees
+              Participants
             </span>
           </button>
         </div>

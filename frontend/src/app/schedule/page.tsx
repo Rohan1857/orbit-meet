@@ -3,7 +3,17 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Copy, Check, Video, CalendarCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  Copy,
+  Check,
+  Video,
+  CalendarCheck,
+  Clock,
+  FileText,
+  Sliders,
+  ShieldCheck,
+} from "lucide-react";
 import { Navbar } from "@/components/dashboard/Navbar";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -21,6 +31,7 @@ export default function SchedulePage() {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [duration, setDuration] = useState("45");
+  const [autoMute, setAutoMute] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdMeeting, setCreatedMeeting] = useState<Meeting | null>(null);
@@ -102,8 +113,8 @@ export default function SchedulePage() {
   return (
     <div className="min-h-screen flex flex-col bg-app">
       <Navbar />
-      <main className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-lg rounded-lg border border-border bg-surface p-6 sm:p-8 shadow-sm space-y-6">
+      <main className="flex-1 flex items-center justify-center p-4 sm:p-6 my-4">
+        <div className="w-full max-w-xl rounded-xl border border-border bg-surface p-6 sm:p-8 shadow-xs space-y-6">
           <div className="space-y-1">
             <Link
               href="/"
@@ -112,139 +123,183 @@ export default function SchedulePage() {
               <ArrowLeft className="h-3.5 w-3.5" />
               <span>Back to Dashboard</span>
             </Link>
-            <h2 className="text-xl font-bold text-text-primary">Schedule a Meeting</h2>
+            <h2 className="text-xl font-bold tracking-tight text-text-primary">
+              Schedule a Meeting
+            </h2>
             <p className="text-xs text-text-secondary">
-              Configure session details and generate a shareable conference invite.
+              Configure session parameters, calendar invitations, and participant entry defaults.
             </p>
           </div>
 
           {createdMeeting ? (
-            <div className="space-y-5">
-              <div className="rounded-lg border border-border-subtle bg-surface-muted p-4 space-y-2">
-                <div className="flex items-center gap-2 text-sm font-semibold text-text-primary">
-                  <CalendarCheck className="h-4 w-4 text-[#0e72ed]" />
+            <div className="space-y-5 animate-in fade-in">
+              <div className="rounded-xl border border-border-subtle bg-surface-muted p-5 space-y-3">
+                <div className="flex items-center gap-2 text-sm font-bold text-text-primary">
+                  <CalendarCheck className="h-5 w-5 text-[#0e72ed]" />
                   <span>{createdMeeting.title}</span>
                 </div>
-                <div className="text-xs text-text-secondary space-y-1">
-                  <div>
-                    <span className="text-text-muted">Time: </span>
-                    {formatScheduleDisplay(createdMeeting.scheduled_at)}
+                <div className="text-xs text-text-secondary divide-y divide-border-subtle/60">
+                  <div className="py-1.5 flex justify-between">
+                    <span className="text-text-muted">Start Time:</span>
+                    <span className="font-semibold text-text-primary">
+                      {formatScheduleDisplay(createdMeeting.scheduled_at)}
+                    </span>
                   </div>
-                  <div>
-                    <span className="text-text-muted">Duration: </span>
-                    {createdMeeting.duration_minutes || 45} minutes
+                  <div className="py-1.5 flex justify-between">
+                    <span className="text-text-muted">Duration:</span>
+                    <span>{createdMeeting.duration_minutes || 45} minutes</span>
                   </div>
-                  <div>
-                    <span className="text-text-muted">Meeting ID: </span>
-                    <span className="font-mono font-medium text-text-primary">
+                  <div className="py-1.5 flex justify-between">
+                    <span className="text-text-muted">Room Code:</span>
+                    <span className="font-mono font-semibold text-[#0e72ed]">
                       {formatMeetingCode(createdMeeting.meeting_code)}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <div className="flex flex-col gap-2.5 sm:flex-row sm:justify-end">
                 <Button variant="outline" size="md" onClick={handleCopy} className="gap-2">
                   {copied ? (
                     <>
                       <Check className="h-4 w-4 text-green-600" />
-                      <span>Copied</span>
+                      <span>Copied Invite</span>
                     </>
                   ) : (
                     <>
                       <Copy className="h-4 w-4 text-text-secondary" />
-                      <span>Copy Invite Link</span>
+                      <span>Copy Invitation</span>
                     </>
                   )}
                 </Button>
                 <Link href={`/meeting/${createdMeeting.meeting_code}`}>
-                  <Button size="md" className="gap-2 w-full sm:w-auto">
+                  <Button size="md" className="gap-2 w-full sm:w-auto font-semibold">
                     <Video className="h-4 w-4" />
-                    <span>Start Meeting</span>
+                    <span>Start Session Now</span>
                   </Button>
                 </Link>
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {error && (
-                <div className="rounded-md border border-danger/30 bg-danger/10 p-3 text-xs text-danger">
+                <div className="rounded-lg border border-danger/30 bg-danger/10 p-3 text-xs font-medium text-danger">
                   {error}
                 </div>
               )}
 
-              <Input
-                label="Topic / Title"
-                placeholder="e.g. Weekly Engineering Sync"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                autoFocus
-              />
+              {/* Group 1: Meeting Details */}
+              <div className="space-y-3 rounded-lg border border-border-subtle bg-surface-muted/40 p-4">
+                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text-muted">
+                  <FileText className="h-3.5 w-3.5 text-[#0e72ed]" />
+                  <span>Meeting Details</span>
+                </div>
 
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5">
-                  Description (Optional)
-                </label>
-                <textarea
-                  rows={3}
-                  className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent resize-none"
-                  placeholder="Agenda notes..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                <Input
+                  label="Topic / Title"
+                  placeholder="e.g. Weekly Product Architecture Review"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                  autoFocus
                 />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    className="w-full h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    required
-                  />
-                </div>
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5">
-                    Start Time
+                    Agenda Description (Optional)
                   </label>
-                  <input
-                    type="time"
-                    className="w-full h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    required
+                  <textarea
+                    rows={2}
+                    className="w-full rounded-md border border-border bg-surface px-3 py-2 text-xs text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0e72ed] resize-none"
+                    placeholder="Key talking points or agenda links..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5">
-                  Duration
+              {/* Group 2: Date & Time */}
+              <div className="space-y-3 rounded-lg border border-border-subtle bg-surface-muted/40 p-4">
+                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text-muted">
+                  <Clock className="h-3.5 w-3.5 text-[#0e72ed]" />
+                  <span>Date & Schedule</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full h-10 rounded-md border border-border bg-surface px-3 py-2 text-xs text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0e72ed]"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5">
+                      Start Time
+                    </label>
+                    <input
+                      type="time"
+                      className="w-full h-10 rounded-md border border-border bg-surface px-3 py-2 text-xs text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0e72ed]"
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5">
+                    Estimated Duration
+                  </label>
+                  <select
+                    className="w-full h-10 rounded-md border border-border bg-surface px-3 py-2 text-xs text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0e72ed]"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                  >
+                    <option value="15">15 minutes (Quick Standup)</option>
+                    <option value="30">30 minutes (Standard Sync)</option>
+                    <option value="45">45 minutes (Default)</option>
+                    <option value="60">1 hour (Comprehensive)</option>
+                    <option value="90">1.5 hours (Workshop / Sprint)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Group 3: Conferencing Options */}
+              <div className="space-y-3 rounded-lg border border-border-subtle bg-surface-muted/40 p-4">
+                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text-muted">
+                  <Sliders className="h-3.5 w-3.5 text-[#0e72ed]" />
+                  <span>Conferencing Options</span>
+                </div>
+
+                <label className="flex items-center justify-between text-xs cursor-pointer select-none">
+                  <span className="text-text-primary font-medium">Mute participants upon entry</span>
+                  <input
+                    type="checkbox"
+                    checked={autoMute}
+                    onChange={(e) => setAutoMute(e.target.checked)}
+                    className="h-4 w-4 rounded border-border text-[#0e72ed] focus:ring-[#0e72ed] cursor-pointer"
+                  />
                 </label>
-                <select
-                  className="w-full h-10 rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                >
-                  <option value="15">15 minutes</option>
-                  <option value="30">30 minutes</option>
-                  <option value="45">45 minutes</option>
-                  <option value="60">1 hour</option>
-                  <option value="90">1.5 hours</option>
-                </select>
+
+                <div className="flex items-center gap-1 text-[11px] text-text-muted">
+                  <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
+                  <span>Host moderation controls will be enabled automatically for your account.</span>
+                </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-border-subtle">
-                <Button type="button" variant="ghost" onClick={() => router.push("/")}>
+              {/* Form Action Footer */}
+              <div className="flex justify-end gap-2.5 pt-2">
+                <Button type="button" variant="ghost" onClick={() => router.push("/")} className="text-xs">
                   Cancel
                 </Button>
-                <Button type="submit" isLoading={isSubmitting}>
+                <Button type="submit" isLoading={isSubmitting} className="text-xs font-semibold px-5">
                   Schedule Meeting
                 </Button>
               </div>

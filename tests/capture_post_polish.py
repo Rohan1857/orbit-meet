@@ -66,7 +66,7 @@ with sync_playwright() as p:
         # 6. Create instant meeting & capture PreJoin
         page.goto(f"{BASE_URL}/", wait_until="networkidle")
         time.sleep(1)
-        page.click('button:has-text("New Meeting")')
+        page.locator('text=New Meeting').first.click()
         page.wait_for_url(lambda u: "/meeting/" in u, timeout=15000)
         time.sleep(3)
         page.screenshot(path=f"{OUTPUT_DIR}/prejoin_{vp_name}.png")
