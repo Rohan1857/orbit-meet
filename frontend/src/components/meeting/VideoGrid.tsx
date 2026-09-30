@@ -4,43 +4,80 @@ import React from "react";
 import {
   useTracks,
   useParticipants,
+  useLocalParticipant,
   VideoTrack,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { ParticipantTile } from "@/components/meeting/ParticipantTile";
 import { cn } from "@/lib/utils";
+import { ScreenShare, X } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
-export const VideoGrid: React.FC = () => {
+interface VideoGridProps {
+  activeReactions?: Record<string, string>;
+  raisedHands?: Record<string, boolean>;
+}
+
+export const VideoGrid: React.FC<VideoGridProps> = ({
+  activeReactions = {},
+  raisedHands = {},
+}) => {
   const participants = useParticipants();
+  const { localParticipant } = useLocalParticipant();
 
   // Get all camera tracks
   const cameraTracks = useTracks([Track.Source.Camera], {
     onlySubscribed: false,
   });
 
-  // Get screen share tracks if any
+  // Get screen share tracks
   const screenShareTracks = useTracks([Track.Source.ScreenShare], {
-    onlySubscribed: true,
+    onlySubscribed: false,
   });
 
   const activeScreenShare = screenShareTracks[0];
+  const isLocalSharing = localParticipant?.isScreenShareEnabled;
 
-  // Screen Share Layout
+  // Screen Share Presentation Mode
   if (activeScreenShare && activeScreenShare.publication?.track) {
+    const sharerName =
+      activeScreenShare.participant.isLocal
+        ? "You"
+        : activeScreenShare.participant.name || activeScreenShare.participant.identity || "Presenter";
+
     return (
-      <div className="flex h-full w-full flex-col lg:flex-row gap-3 p-3 overflow-hidden">
-        {/* Main Stage Screen Share */}
+      <div className="flex h-full w-full flex-col lg:flex-row gap-3 p-3 overflow-hidden relative">
+        {/* Main Stage Presentation */}
         <div className="flex-1 relative rounded-lg bg-[#0e0f12] border border-[#2b2f3a] overflow-hidden flex items-center justify-center shadow-lg">
           <VideoTrack
             trackRef={activeScreenShare}
             className="h-full w-full object-contain"
           />
-          <div className="absolute top-3 left-3 rounded-md bg-black/70 backdrop-blur-xs px-3 py-1 text-xs text-white">
-            {activeScreenShare.participant.name || "Someone"}'s Screen
+
+          {/* Presenter Name Badge */}
+          <div className="absolute top-3 left-3 rounded-md bg-black/70 backdrop-blur-xs px-3 py-1.5 text-xs text-white flex items-center gap-2 border border-white/10 shadow-md">
+            <ScreenShare className="h-3.5 w-3.5 text-[#38bdf8]" />
+            <span className="font-medium">{sharerName} are presenting</span>
           </div>
+
+          {/* Local Presenter Stop Share Banner */}
+          {isLocalSharing && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 rounded-full bg-[#1e293b]/90 backdrop-blur-md px-4 py-2 text-xs text-white border border-[#38bdf8]/40 shadow-2xl">
+              <span className="text-[#38bdf8] font-medium">You are sharing your screen</span>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => localParticipant?.setScreenShareEnabled(false)}
+                className="h-7 px-3 text-xs gap-1 rounded-full font-medium"
+              >
+                <X className="h-3.5 w-3.5" />
+                <span>Stop Share</span>
+              </Button>
+            </div>
+          )}
         </div>
 
-        {/* Side/Bottom Strip of Participants */}
+        {/* Participant Strip (right on desktop, bottom on mobile) */}
         <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto lg:w-64 max-h-48 lg:max-h-full shrink-0">
           {participants.map((p) => {
             const camTrack = cameraTracks.find(
@@ -52,6 +89,8 @@ export const VideoGrid: React.FC = () => {
                   participant={p}
                   isLocal={p.isLocal}
                   videoTrackPublication={camTrack?.publication}
+                  activeReaction={activeReactions[p.identity]}
+                  isHandRaised={!!raisedHands[p.identity]}
                 />
               </div>
             );
@@ -88,6 +127,8 @@ export const VideoGrid: React.FC = () => {
               participant={participant}
               isLocal={participant.isLocal}
               videoTrackPublication={camTrack?.publication}
+              activeReaction={activeReactions[participant.identity]}
+              isHandRaised={!!raisedHands[participant.identity]}
             />
           );
         })}

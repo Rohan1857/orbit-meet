@@ -12,6 +12,7 @@ from app.schemas.meeting import (
     ScheduledMeetingCreate,
     MeetingResponse,
     MeetingDetailResponse,
+    MeetingPermissionsUpdate,
 )
 from app.schemas.participant import (
     JoinMeetingRequest,
@@ -37,6 +38,9 @@ def format_meeting_response(meeting: Meeting, include_token: bool = False) -> di
         "status": meeting.status,
         "owner_user_id": meeting.owner_user_id,
         "invite_url": f"{settings.frontend_origin}/join?meeting={meeting.meeting_code}",
+        "is_locked": bool(getattr(meeting, "is_locked", False)),
+        "allow_participant_unmute": bool(getattr(meeting, "allow_participant_unmute", True)),
+        "allow_participant_screen_share": bool(getattr(meeting, "allow_participant_screen_share", True)),
         "created_at": meeting.created_at,
         "started_at": meeting.started_at,
         "ended_at": meeting.ended_at,
@@ -134,6 +138,12 @@ def join_meeting(
         else:
             payload.role = "participant"
 
+    if getattr(meeting, "is_locked", False) and not is_host:
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED,
+            detail="This meeting has been locked by the host."
+        )
+
     # Generate identity
     role_prefix = "host" if is_host else "user"
     clean_name = "".join(c for c in payload.display_name.lower() if c.isalnum()) or "guest"
@@ -176,3 +186,74 @@ def leave_meeting(
 ):
     session = MeetingService.record_participant_leave(db, payload.participant_identity)
     return {"status": "recorded", "identity": payload.participant_identity}
+
+
+def _verify_meeting_host(meeting: Meeting, current_user: Optional[User], x_host_token: Optional[str]):
+    if meeting.owner_user_id is not None:
+        if current_user and meeting.owner_user_id == current_user.id:
+            return
+        if x_host_token and meeting.host_control_token == x_host_token:
+            return
+        raise HTTPException(status_code=403, detail="Only meeting host can perform this action")
+    if not (x_host_token and meeting.host_control_token == x_host_token):
+        raise HTTPException(status_code=403, detail="Only meeting host can perform this action")
+
+
+@router.post("/{meeting_code}/lock")
+def lock_meeting(
+    meeting_code: str,
+    x_host_token: Optional[str] = Header(default=None),
+    current_user: Optional[User] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    meeting = MeetingService.get_meeting_by_code(db, meeting_code)
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    _verify_meeting_host(meeting, current_user, x_host_token)
+    meeting.is_locked = True
+    db.commit()
+    db.refresh(meeting)
+    return {"status": "locked", "meeting_code": meeting_code, "is_locked": True}
+
+
+@router.post("/{meeting_code}/unlock")
+def unlock_meeting(
+    meeting_code: str,
+    x_host_token: Optional[str] = Header(default=None),
+    current_user: Optional[User] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    meeting = MeetingService.get_meeting_by_code(db, meeting_code)
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    _verify_meeting_host(meeting, current_user, x_host_token)
+    meeting.is_locked = False
+    db.commit()
+    db.refresh(meeting)
+    return {"status": "unlocked", "meeting_code": meeting_code, "is_locked": False}
+
+
+@router.patch("/{meeting_code}/permissions")
+def update_meeting_permissions(
+    meeting_code: str,
+    payload: MeetingPermissionsUpdate,
+    x_host_token: Optional[str] = Header(default=None),
+    current_user: Optional[User] = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    meeting = MeetingService.get_meeting_by_code(db, meeting_code)
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    _verify_meeting_host(meeting, current_user, x_host_token)
+    if payload.allow_participant_unmute is not None:
+        meeting.allow_participant_unmute = payload.allow_participant_unmute
+    if payload.allow_participant_screen_share is not None:
+        meeting.allow_participant_screen_share = payload.allow_participant_screen_share
+    db.commit()
+    db.refresh(meeting)
+    return {
+        "status": "updated",
+        "meeting_code": meeting_code,
+        "allow_participant_unmute": meeting.allow_participant_unmute,
+        "allow_participant_screen_share": meeting.allow_participant_screen_share
+    }

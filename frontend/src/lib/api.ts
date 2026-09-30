@@ -238,6 +238,41 @@ class ApiClient {
       }
     );
   }
+
+  async lockMeeting(code: string, hostToken?: string | null): Promise<{ is_locked: boolean }> {
+    return this.request<{ is_locked: boolean }>(
+      `/meetings/${encodeURIComponent(code)}/lock`,
+      {
+        method: "POST",
+        headers: hostToken ? { "x-host-token": hostToken } : undefined,
+      }
+    );
+  }
+
+  async unlockMeeting(code: string, hostToken?: string | null): Promise<{ is_locked: boolean }> {
+    return this.request<{ is_locked: boolean }>(
+      `/meetings/${encodeURIComponent(code)}/unlock`,
+      {
+        method: "POST",
+        headers: hostToken ? { "x-host-token": hostToken } : undefined,
+      }
+    );
+  }
+
+  async updateMeetingPermissions(
+    code: string,
+    permissions: { allow_participant_unmute?: boolean; allow_participant_screen_share?: boolean },
+    hostToken?: string | null
+  ): Promise<{ allow_participant_unmute: boolean; allow_participant_screen_share: boolean }> {
+    return this.request<{ allow_participant_unmute: boolean; allow_participant_screen_share: boolean }>(
+      `/meetings/${encodeURIComponent(code)}/permissions`,
+      {
+        method: "PATCH",
+        headers: hostToken ? { "x-host-token": hostToken } : undefined,
+        body: JSON.stringify(permissions),
+      }
+    );
+  }
 }
 
 export const api = new ApiClient();

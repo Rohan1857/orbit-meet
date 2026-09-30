@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Mic, MicOff, ShieldCheck } from "lucide-react";
+import { Mic, MicOff, ShieldCheck, Hand } from "lucide-react";
 import { VideoTrack, useIsSpeaking } from "@livekit/components-react";
 import { Participant, TrackPublication, Track } from "livekit-client";
 import { cn } from "@/lib/utils";
@@ -10,12 +10,16 @@ interface ParticipantTileProps {
   participant: Participant;
   isLocal?: boolean;
   videoTrackPublication?: TrackPublication;
+  activeReaction?: string | null;
+  isHandRaised?: boolean;
 }
 
 export const ParticipantTile: React.FC<ParticipantTileProps> = ({
   participant,
   isLocal = false,
   videoTrackPublication,
+  activeReaction,
+  isHandRaised = false,
 }) => {
   const isSpeaking = useIsSpeaking(participant);
 
@@ -66,6 +70,21 @@ export const ParticipantTile: React.FC<ParticipantTileProps> = ({
           <span className="text-xs text-[#8f96a3] font-medium hidden sm:inline-block">
             {displayName}
           </span>
+        </div>
+      )}
+
+      {/* Hand Raised Indicator */}
+      {isHandRaised && (
+        <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 rounded-md bg-[#eab308] text-[#0f172a] px-2 py-0.5 text-xs font-semibold shadow-md animate-in fade-in zoom-in-75 duration-150">
+          <Hand className="h-3.5 w-3.5 fill-current" />
+          <span>Hand Raised</span>
+        </div>
+      )}
+
+      {/* Floating Reaction Overlay */}
+      {activeReaction && (
+        <div className="absolute top-2 right-2 z-10 flex items-center justify-center rounded-full bg-black/60 backdrop-blur-xs border border-white/20 p-2 text-2xl shadow-xl animate-in zoom-in-50 fade-in duration-200">
+          <span role="img" aria-label="reaction">{activeReaction}</span>
         </div>
       )}
 

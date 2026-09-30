@@ -1,0 +1,179 @@
+export const ALLOWED_REACTIONS = ["👍", "👏", "❤️", "😂", "🎉"] as const;
+export type AllowedReaction = typeof ALLOWED_REACTIONS[number];
+
+export interface ChatMessagePayload {
+  id: string;
+  senderIdentity: string;
+  senderName: string;
+  text: string;
+  timestamp: number;
+}
+
+export interface ReactionPayload {
+  senderIdentity: string;
+  senderName: string;
+  emoji: AllowedReaction;
+  timestamp: number;
+}
+
+export interface HandStatePayload {
+  senderIdentity: string;
+  isRaised: boolean;
+}
+
+export interface SystemMessagePayload {
+  id: string;
+  message: string;
+  timestamp: number;
+}
+
+export type RealtimeEvent =
+  | { type: "chat.message"; version: 1; payload: ChatMessagePayload }
+  | { type: "reaction"; version: 1; payload: ReactionPayload }
+  | { type: "hand.state"; version: 1; payload: HandStatePayload }
+  | { type: "system"; version: 1; payload: SystemMessagePayload };
+
+export function encodeRealtimeEvent(event: RealtimeEvent): Uint8Array {
+  const json = JSON.stringify(event);
+  return new TextEncoder().encode(json);
+}
+
+export function decodeRealtimeEvent(data: Uint8Array): RealtimeEvent | null {
+  try {
+    const text = new TextDecoder().decode(data);
+    const parsed = JSON.parse(text);
+    if (!parsed || typeof parsed !== "object" || parsed.version !== 1) {
+      return null;
+    }
+
+    if (parsed.type === "chat.message") {
+      const p = parsed.payload;
+      if (
+        p &&
+        typeof p.id === "string" &&
+        typeof p.senderIdentity === "string" &&
+        typeof p.senderName === "string" &&
+        typeof p.text === "string" &&
+        p.text.trim().length > 0 &&
+        p.text.length <= 2000
+      ) {
+        return {
+          type: "chat.message",
+          version: 1,
+          payload: {
+            id: p.id,
+            senderIdentity: p.senderIdentity,
+            senderName: p.senderName.slice(0, 100),
+            text: p.text.trim().slice(0, 2000),
+            timestamp: typeof p.timestamp === "number" ? p.timestamp : Date.now(),
+          },
+        };
+      }
+    }
+
+    if (parsed.type === "reaction") {
+      const p = parsed.payload;
+      if (
+        p &&
+        typeof p.senderIdentity === "string" &&
+        ALLOWED_REACTIONS.includes(p.emoji)
+      ) {
+        return {
+          type: "reaction",
+          version: 1,
+          payload: {
+            senderIdentity: p.senderIdentity,
+            senderName: typeof p.senderName === "string" ? p.senderName : "Participant",
+            emoji: p.emoji,
+            timestamp: typeof p.timestamp === "number" ? p.timestamp : Date.now(),
+          },
+        };
+      }
+    }
+
+    if (parsed.type === "hand.state") {
+      const p = parsed.payload;
+      if (p && typeof p.senderIdentity === "string" && typeof p.isRaised === "boolean") {
+        return {
+          type: "hand.state",
+          version: 1,
+          payload: {
+            senderIdentity: p.senderIdentity,
+            isRaised: p.isRaised,
+          },
+        };
+      }
+    }
+
+    if (parsed.type === "system") {
+      const p = parsed.payload;
+      if (p && typeof p.message === "string") {
+        return {
+          type: "system",
+          version: 1,
+          payload: {
+            id: typeof p.id === "string" ? p.id : `sys_${Date.now()}`,
+            message: p.message,
+            timestamp: typeof p.timestamp === "number" ? p.timestamp : Date.now(),
+          },
+        };
+      }
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export const decodeRealtimeMessage = decodeRealtimeEvent;
+
+export function encodeChatMessage(senderIdentity: string, senderName: string, text: string): Uint8Array {
+  return encodeRealtimeEvent({
+    type: "chat.message",
+    version: 1,
+    payload: {
+      id: `chat_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      senderIdentity,
+      senderName,
+      text,
+      timestamp: Date.now(),
+    },
+  });
+}
+
+export function encodeReaction(senderIdentity: string, senderName: string, emoji: AllowedReaction): Uint8Array {
+  return encodeRealtimeEvent({
+    type: "reaction",
+    version: 1,
+    payload: {
+      senderIdentity,
+      senderName,
+      emoji,
+      timestamp: Date.now(),
+    },
+  });
+}
+
+export function encodeHandState(senderIdentity: string, isRaised: boolean): Uint8Array {
+  return encodeRealtimeEvent({
+    type: "hand.state",
+    version: 1,
+    payload: {
+      senderIdentity,
+      isRaised,
+    },
+  });
+}
+
+export function encodeSystemNotice(message: string): Uint8Array {
+  return encodeRealtimeEvent({
+    type: "system",
+    version: 1,
+    payload: {
+      id: `sys_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      message,
+      timestamp: Date.now(),
+    },
+  });
+}

@@ -1,0 +1,76 @@
+{
+  "step_results": {
+    "backend_health": {
+      "passed": true,
+      "details": "Status: 200, DB: connected"
+    },
+    "host_signup": {
+      "passed": true,
+      "details": "Logged in as host_1790754029@orbitmeet.test"
+    },
+    "create_instant_meeting": {
+      "passed": true,
+      "details": "Meeting code: 7694333388"
+    },
+    "host_connected": {
+      "passed": true,
+      "details": "Host connected to LiveKit room"
+    },
+    "alice_connected": {
+      "passed": true,
+      "details": "Alice connected to LiveKit room"
+    },
+    "unread_chat_counter": {
+      "passed": true,
+      "details": "Unread indicator active on Host toolbar"
+    },
+    "chat_message_propagation": {
+      "passed": true,
+      "details": "Host received Alice's chat message"
+    },
+    "chat_bidirectional_reply": {
+      "passed": true,
+      "details": "Alice received Host's reply"
+    },
+    "reaction_sent_and_displayed": {
+      "passed": true,
+      "details": "Host dispatched \ud83d\udc4f reaction"
+    },
+    "host_sees_alice_hand_raised": {
+      "passed": true,
+      "details": "Host detected raised hand and can lower it"
+    },
+    "host_locked_meeting": {
+      "passed": true,
+      "details": "Host successfully locked meeting via Host Tools"
+    },
+    "locked_room_rejection": {
+      "passed": true,
+      "details": "Third guest rejected from locked room"
+    },
+    "host_unlocked_meeting": {
+      "passed": true,
+      "details": "Host unlocked meeting"
+    },
+    "microphone_device_menu": {
+      "passed": true,
+      "details": "Microphone device dropdown opened"
+    },
+    "shortcuts_modal": {
+      "passed": true,
+      "details": "Keyboard shortcuts modal rendered Alt+A, Alt+V, Alt+H"
+    },
+    "host_end_meeting_for_all": {
+      "passed": true,
+      "details": "Host ended meeting cleanly"
+    }
+  },
+  "console_logs_host": [
+    "[error] Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "console_logs_participant": [
+    "[error] Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "network_errors_host": [],
+  "network_errors_participant": []
+}

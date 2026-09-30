@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Mic, MicOff, Video, VideoOff, ShieldCheck, UserX, VolumeX } from "lucide-react";
+import { X, Mic, MicOff, Video, VideoOff, ShieldCheck, UserX, VolumeX, Hand, Monitor } from "lucide-react";
 import { useParticipants } from "@livekit/components-react";
 import { Participant } from "livekit-client";
 import { Button } from "@/components/ui/Button";
@@ -14,6 +14,9 @@ interface ParticipantsPanelProps {
   hostToken: string | null;
   isOpen: boolean;
   onClose: () => void;
+  raisedHands?: Record<string, boolean>;
+  onLowerHand?: (identity: string) => void;
+  activeScreenSharerId?: string | null;
 }
 
 export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
@@ -22,6 +25,9 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
   hostToken,
   isOpen,
   onClose,
+  raisedHands = {},
+  onLowerHand,
+  activeScreenSharerId,
 }) => {
   const participants = useParticipants();
   const [searchTerm, setSearchTerm] = useState("");
@@ -95,16 +101,18 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
         </div>
       )}
 
-      {/* Search Input */}
-      <div className="p-3 border-b border-[#262830]">
-        <input
-          type="text"
-          placeholder="Filter attendees..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full h-8 rounded-md border border-[#2b2f3a] bg-[#121316] px-3 text-xs text-white placeholder:text-[#6c7280] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0e72ed]"
-        />
-      </div>
+      {/* Search Input - only visible when > 4 participants */}
+      {participants.length > 4 && (
+        <div className="p-3 border-b border-[#262830]">
+          <input
+            type="text"
+            placeholder="Filter attendees..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full h-8 rounded-md border border-[#2b2f3a] bg-[#121316] px-3 text-xs text-white placeholder:text-[#6c7280] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0e72ed]"
+          />
+        </div>
+      )}
 
       {/* Participant List */}
       <div className="flex-1 overflow-y-auto divide-y divide-[#262830]/50 p-2 space-y-1">
@@ -120,10 +128,22 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
               <div className="flex items-center gap-2.5 min-w-0">
                 <Avatar name={name} size="sm" className="h-7 w-7 text-xs shrink-0" />
                 <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-medium truncate">
-                    {name}
-                    {participant.isLocal && " (Me)"}
-                  </span>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-xs font-medium truncate">
+                      {name}
+                      {participant.isLocal && " (Me)"}
+                    </span>
+                    {raisedHands[participant.identity] && (
+                      <span title="Hand raised" className="text-[#eab308]">
+                        <Hand className="h-3 w-3 fill-current inline" />
+                      </span>
+                    )}
+                    {activeScreenSharerId === participant.identity && (
+                      <span title="Sharing screen" className="text-[#38bdf8]">
+                        <Monitor className="h-3 w-3 inline" />
+                      </span>
+                    )}
+                  </div>
                   {isParticipantHost && (
                     <span className="flex items-center gap-1 text-[10px] text-[#fbc02d]">
                       <ShieldCheck className="h-3 w-3" /> Host
@@ -147,26 +167,42 @@ export const ParticipantsPanel: React.FC<ParticipantsPanelProps> = ({
                 )}
 
                 {/* Host Moderation Controls */}
-                {isHost && !participant.isLocal && (
+                {isHost && (
                   <div className="flex items-center gap-1 ml-1 border-l border-[#262830] pl-1.5">
-                    {participant.isMicrophoneEnabled && (
+                    {/* Lower hand if raised */}
+                    {raisedHands[participant.identity] && onLowerHand && (
                       <button
-                        onClick={() => handleMuteParticipant(participant)}
-                        className="rounded p-1 text-[#a0a6b5] hover:text-[#f87171] hover:bg-[#252830] transition-colors"
-                        title={`Mute ${name}`}
-                        aria-label={`Mute ${name}`}
+                        onClick={() => onLowerHand(participant.identity)}
+                        className="rounded p-1 text-[#eab308] hover:text-[#fde047] hover:bg-[#252830] transition-colors"
+                        title={`Lower ${name}'s hand`}
+                        aria-label={`Lower ${name}'s hand`}
                       >
-                        <VolumeX className="h-3.5 w-3.5" />
+                        <Hand className="h-3.5 w-3.5" />
                       </button>
                     )}
-                    <button
-                      onClick={() => handleRemove(participant)}
-                      className="rounded p-1 text-[#a0a6b5] hover:text-[#f87171] hover:bg-[#321e20] transition-colors"
-                      title={`Remove ${name}`}
-                      aria-label={`Remove ${name}`}
-                    >
-                      <UserX className="h-3.5 w-3.5" />
-                    </button>
+
+                    {!participant.isLocal && (
+                      <>
+                        {participant.isMicrophoneEnabled && (
+                          <button
+                            onClick={() => handleMuteParticipant(participant)}
+                            className="rounded p-1 text-[#a0a6b5] hover:text-[#f87171] hover:bg-[#252830] transition-colors"
+                            title={`Mute ${name}`}
+                            aria-label={`Mute ${name}`}
+                          >
+                            <VolumeX className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleRemove(participant)}
+                          className="rounded p-1 text-[#a0a6b5] hover:text-[#f87171] hover:bg-[#321e20] transition-colors"
+                          title={`Remove ${name}`}
+                          aria-label={`Remove ${name}`}
+                        >
+                          <UserX className="h-3.5 w-3.5" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>

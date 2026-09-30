@@ -40,6 +40,9 @@ export interface Meeting {
   host_control_token?: string | null;
   owner_user_id?: number | null;
   invite_url?: string | null;
+  is_locked?: boolean;
+  allow_participant_unmute?: boolean;
+  allow_participant_screen_share?: boolean;
   created_at: string;
   started_at?: string | null;
   ended_at?: string | null;

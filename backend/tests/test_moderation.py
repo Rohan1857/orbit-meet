@@ -183,3 +183,78 @@ def test_non_owner_mute_rejected_with_403(client, auth_headers):
     res3 = client.post(f"/api/meetings/{meeting_code}/mute-all")
     assert res3.status_code == 403
 
+
+def test_meeting_lock_and_unlock_flow(client, auth_headers):
+    # Owner creates meeting
+    create_res = client.post("/api/meetings/instant", headers=auth_headers, json={"title": "Lockable Room"})
+    assert create_res.status_code == 201
+    meeting_code = create_res.json()["meeting_code"]
+    assert create_res.json()["is_locked"] is False
+
+    # Owner locks meeting
+    lock_res = client.post(f"/api/meetings/{meeting_code}/lock", headers=auth_headers)
+    assert lock_res.status_code == 200
+    assert lock_res.json()["is_locked"] is True
+
+    # Guest tries to join locked meeting -> 423
+    guest_join = client.post(f"/api/meetings/{meeting_code}/join", json={"display_name": "Locked Guest", "role": "participant"})
+    assert guest_join.status_code == 423
+    assert "locked by the host" in guest_join.json()["detail"]
+
+    # Owner rejoins locked meeting -> succeeds
+    owner_join = client.post(
+        f"/api/meetings/{meeting_code}/join",
+        headers=auth_headers,
+        json={"display_name": "Host Rejoin", "role": "host"}
+    )
+    assert owner_join.status_code == 200
+
+    # Attacker tries to unlock -> 403
+    attacker = client.post("/api/auth/register", json={
+        "email": "attacker_lock@example.com",
+        "password": "Password123!",
+        "display_name": "Attacker"
+    }).json()
+    attacker_unlock = client.post(
+        f"/api/meetings/{meeting_code}/unlock",
+        headers={"Authorization": f"Bearer {attacker['token']}"}
+    )
+    assert attacker_unlock.status_code == 403
+
+    # Owner unlocks meeting
+    unlock_res = client.post(f"/api/meetings/{meeting_code}/unlock", headers=auth_headers)
+    assert unlock_res.status_code == 200
+    assert unlock_res.json()["is_locked"] is False
+
+    # Guest can now join
+    guest_rejoin = client.post(f"/api/meetings/{meeting_code}/join", json={"display_name": "Unlocked Guest", "role": "participant"})
+    assert guest_rejoin.status_code == 200
+
+
+def test_meeting_permissions_update(client, auth_headers):
+    create_res = client.post("/api/meetings/instant", headers=auth_headers, json={"title": "Permission Room"})
+    meeting_code = create_res.json()["meeting_code"]
+
+    # Owner updates permissions
+    patch_res = client.patch(
+        f"/api/meetings/{meeting_code}/permissions",
+        headers=auth_headers,
+        json={"allow_participant_unmute": False, "allow_participant_screen_share": False}
+    )
+    assert patch_res.status_code == 200
+    assert patch_res.json()["allow_participant_unmute"] is False
+    assert patch_res.json()["allow_participant_screen_share"] is False
+
+    # Non-owner fails with 403
+    attacker = client.post("/api/auth/register", json={
+        "email": "attacker_perm@example.com",
+        "password": "Password123!",
+        "display_name": "Attacker"
+    }).json()
+    fail_res = client.patch(
+        f"/api/meetings/{meeting_code}/permissions",
+        headers={"Authorization": f"Bearer {attacker['token']}"},
+        json={"allow_participant_unmute": True}
+    )
+    assert fail_res.status_code == 403
+

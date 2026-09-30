@@ -38,11 +38,19 @@ class MeetingResponse(BaseModel):
     host_control_token: Optional[str] = None
     owner_user_id: Optional[int] = None
     invite_url: Optional[str] = None
+    is_locked: bool = False
+    allow_participant_unmute: bool = True
+    allow_participant_screen_share: bool = True
     created_at: datetime.datetime
     started_at: Optional[datetime.datetime] = None
     ended_at: Optional[datetime.datetime] = None
 
     model_config = {"from_attributes": True}
+
+
+class MeetingPermissionsUpdate(BaseModel):
+    allow_participant_unmute: Optional[bool] = None
+    allow_participant_screen_share: Optional[bool] = None
 
 
 class MeetingDetailResponse(MeetingResponse):

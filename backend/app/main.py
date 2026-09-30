@@ -27,14 +27,20 @@ async def lifespan(app: FastAPI):
     # 1. Ensure tables exist
     Base.metadata.create_all(bind=engine)
 
-    # 2. Add owner_user_id to meetings if migrating legacy database
+    # 2. Add owner_user_id and lock/permission columns to meetings if migrating legacy database
     with engine.connect() as conn:
         try:
             res = conn.execute(text("PRAGMA table_info(meetings)"))
             cols = [r[1] for r in res.fetchall()]
             if "owner_user_id" not in cols:
                 conn.execute(text("ALTER TABLE meetings ADD COLUMN owner_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL"))
-                conn.commit()
+            if "is_locked" not in cols:
+                conn.execute(text("ALTER TABLE meetings ADD COLUMN is_locked BOOLEAN NOT NULL DEFAULT 0"))
+            if "allow_participant_unmute" not in cols:
+                conn.execute(text("ALTER TABLE meetings ADD COLUMN allow_participant_unmute BOOLEAN NOT NULL DEFAULT 1"))
+            if "allow_participant_screen_share" not in cols:
+                conn.execute(text("ALTER TABLE meetings ADD COLUMN allow_participant_screen_share BOOLEAN NOT NULL DEFAULT 1"))
+            conn.commit()
         except Exception as e:
             print(f"Schema column check: {e}")
 
