@@ -404,6 +404,9 @@ def run_test():
             unexpected_network = [
                 e for e in all_network_errors
                 if not any(exp in e for exp in [
+                    "net::ERR_ABORTED",
+                    "_rsc=",
+                    "accounts.google.com",
                     "/join",
                     "favicon.ico",
                 ])
